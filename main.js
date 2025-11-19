@@ -1,12 +1,5 @@
 // Enhanced Market Price App - Main JavaScript File with Real-time Data Integration
-
-// Import MealDB Integration
-if (typeof MealDBIntegration === 'undefined') {
-    // Load MealDB integration if not already loaded
-    const script = document.createElement('script');
-    script.src = 'mealdb-integration.js';
-    document.head.appendChild(script);
-}
+// MealDB Integration is loaded via script tag in HTML
 
 // Government Data Sources Integration
 const governmentDataSources = {
@@ -297,31 +290,36 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function initializeApp() {
-    // Initialize MealDB Integration
-    const mealDB = new MealDBIntegration();
-    
-    try {
-        // Load comprehensive product data from MealDB
-        const mealDBData = await mealDB.initialize();
-        
-        // Merge MealDB data with existing market data
-        marketData = mergeMarketData(marketData, mealDBData);
-        
-        console.log(`Initialized with ${Object.keys(marketData).reduce((total, category) => total + marketData[category].length, 0)} products`);
-        
-    } catch (error) {
-        console.error('Failed to load MealDB data, using fallback:', error);
-        // Keep existing marketData as fallback
-    }
-    
+    // Initialize core functionality first
     setupNavigation();
     setupSearch();
     setupFilters();
-    loadMarketData();
+    loadMarketData(); // Load with existing static data
     setupShoppingList();
     setupPriceAlerts();
     setupAnimations();
     startDataSync();
+
+    // Try to enhance with MealDB Integration (optional)
+    try {
+        if (typeof MealDBIntegration !== 'undefined') {
+            const mealDB = new MealDBIntegration();
+            const mealDBData = await mealDB.initialize();
+
+            // Merge MealDB data with existing market data
+            marketData = mergeMarketData(marketData, mealDBData);
+
+            // Reload the grid with enhanced data
+            loadMarketData();
+
+            console.log(`Enhanced with ${Object.keys(marketData).reduce((total, category) => total + marketData[category].length, 0)} products`);
+        } else {
+            console.log('MealDB Integration not available, using static data');
+        }
+    } catch (error) {
+        console.log('Using static product data:', error.message);
+        // Keep existing marketData as fallback (already loaded above)
+    }
 }
 
 // Merge existing market data with MealDB data
