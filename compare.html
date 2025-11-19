@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compare Market Prices - Sri Lanka Market Prices</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Animation Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    
+    <!-- Custom Styles -->
+    <style>
+        :root {
+            --forest-green: #2D5016;
+            --sage-green: #87A96B;
+            --warm-beige: #F5F1E8;
+            --deep-brown: #8B4513;
+            --harvest-gold: #DAA520;
+            --crimson-red: #DC143C;
+            --sky-blue: #87CEEB;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--warm-beige);
+            color: var(--deep-brown);
+        }
+        
+        .font-display {
+            font-family: 'Playfair Display', serif;
+        }
+        
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .nav-bar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(45, 80, 22, 0.1);
+        }
+        
+        .comparison-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .comparison-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .comparison-card.selected {
+            border-color: var(--sage-green);
+            box-shadow: 0 0 0 3px rgba(135, 169, 107, 0.2);
+        }
+        
+        .market-selector {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .price-highlight {
+            background: linear-gradient(135deg, var(--forest-green) 0%, var(--sage-green) 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        
+        .savings-indicator {
+            background: var(--harvest-gold);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--forest-green) 0%, var(--sage-green) 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(45, 80, 22, 0.3);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: var(--forest-green);
+            border: 2px solid var(--sage-green);
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .btn-secondary:hover {
+            background: var(--sage-green);
+            color: white;
+        }
+        
+        .comparison-table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .comparison-table th {
+            background: var(--forest-green);
+            color: white;
+            padding: 16px;
+            font-weight: 600;
+        }
+        
+        .comparison-table td {
+            padding: 16px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .comparison-table tr:hover {
+            background-color: rgba(135, 169, 107, 0.05);
+        }
+        
+        .best-price {
+            background: rgba(34, 197, 94, 0.1);
+            border-left: 4px solid #22c55e;
+        }
+        
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease;
+        }
+        
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="nav-bar fixed top-0 left-0 right-0 z-50">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-green-600 to-green-700 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-display font-bold text-gray-800">Market Prices</h1>
+                        <p class="text-sm text-gray-600">Sri Lanka</p>
+                    </div>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-6">
+                    <a href="index.html" class="nav-link text-gray-700 hover:text-green-600 font-medium">Dashboard</a>
+                    <a href="compare.html" class="nav-link text-gray-700 hover:text-green-600 font-medium border-b-2 border-green-600">Compare</a>
+                    <a href="trends.html" class="nav-link text-gray-700 hover:text-green-600 font-medium">Trends</a>
+                    <a href="list.html" class="nav-link text-gray-700 hover:text-green-600 font-medium">Shopping List</a>
+                </div>
+                
+                <div class="flex items-center space-x-3">
+                    <div class="relative">
+                        <button class="flex items-center space-x-2 text-gray-700 hover:text-green-600">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+                            </svg>
+                            <span id="shoppingListCount" class="bg-red-500 text-white text-xs rounded-full px-2 py-1">0</span>
+                        </button>
+                    </div>
+                    
+                    <button class="md:hidden text-gray-700">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header Section -->
+    <section class="pt-24 pb-12 bg-gradient-to-br from-green-50 to-green-100">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl md:text-5xl font-display font-bold text-gray-800 mb-4">
+                    Compare Market Prices
+                </h1>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                    Find the best deals by comparing prices across different markets in Sri Lanka
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-12">
+        <!-- Market Selection -->
+        <section class="mb-12 animate-on-scroll">
+            <div class="market-selector p-6">
+                <h2 class="text-2xl font-display font-bold mb-6 text-gray-800">Select Markets to Compare</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="comparison-card p-4 cursor-pointer" onclick="toggleMarketSelection('Colombo')">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-semibold text-gray-800">Colombo</h3>
+                                <p class="text-sm text-gray-600">Pettah Market</p>
+                            </div>
+                            <div class="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center">
+                                <div class="w-3 h-3 bg-green-600 rounded-full hidden market-checkbox-colombo"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="comparison-card p-4 cursor-pointer" onclick="toggleMarketSelection('Kandy')">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-semibold text-gray-800">Kandy</h3>
+                                <p class="text-sm text-gray-600">Central Market</p>
+                            </div>
+                            <div class="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center">
+                                <div class="w-3 h-3 bg-green-600 rounded-full hidden market-checkbox-kandy"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="comparison-card p-4 cursor-pointer" onclick="toggleMarketSelection('Galle')">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-semibold text-gray-800">Galle</h3>
+                                <p class="text-sm text-gray-600">Main Market</p>
+                            </div>
+                            <div class="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center">
+                                <div class="w-3 h-3 bg-green-600 rounded-full hidden market-checkbox-galle"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="comparison-card p-4 cursor-pointer" onclick="toggleMarketSelection('Dambulla')">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-semibold text-gray-800">Dambulla</h3>
+                                <p class="text-sm text-gray-600">Economic Centre</p>
+                            </div>
+                            <div class="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center">
+                                <div class="w-3 h-3 bg-green-600 rounded-full hidden market-checkbox-dambulla"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button class="btn-primary" onclick="compareSelectedMarkets()">
+                        Compare Selected Markets
+                    </button>
+                    <button class="btn-secondary" onclick="selectAllMarkets()">
+                        Select All Markets
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Product Selection -->
+        <section class="mb-12 animate-on-scroll">
+            <div class="bg-white rounded-lg p-6 shadow-lg">
+                <h2 class="text-2xl font-display font-bold mb-6 text-gray-800">Select Products to Compare</h2>
+                
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+                    <div class="comparison-item p-3 border rounded-lg cursor-pointer text-center" onclick="toggleProductSelection('tomatoes')">
+                        <div class="w-12 h-12 mx-auto mb-2 bg-red-100 rounded-full flex items-center justify-center">
+                            🍅
+                        </div>
+                        <h4 class="font-medium text-sm">Tomatoes</h4>
+                        <p class="text-xs text-gray-600">තක්කාලි</p>
+                    </div>
+                    
+                    <div class="comparison-item p-3 border rounded-lg cursor-pointer text-center" onclick="toggleProductSelection('carrots')">
+                        <div class="w-12 h-12 mx-auto mb-2 bg-orange-100 rounded-full flex items-center justify-center">
+                            🥕
+                        </div>
+                        <h4 class="font-medium text-sm">Carrots</h4>
+                        <p class="text-xs text-gray-600">කැරට්</p>
+                    </div>
+                    
+                    <div class="comparison-item p-3 border rounded-lg cursor-pointer text-center" onclick="toggleProductSelection('onions')">
+                        <div class="w-12 h-12 mx-auto mb-2 bg-purple-100 rounded-full flex items-center justify-center">
+                            🧅
+                        </div>
+                        <h4 class="font-medium text-sm">Red Onions</h4>
+                        <p class="text-xs text-gray-600">රතු ලූණු</p>
+                    </div>
+                    
+                    <div class="comparison-item p-3 border rounded-lg cursor-pointer text-center" onclick="toggleProductSelection('chilies')">
+                        <div class="w-12 h-12 mx-auto mb-2 bg-green-100 rounded-full flex items-center justify-center">
+                            🌶️
+                        </div>
+                        <h4 class="font-medium text-sm">Green Chilies</h4>
+                        <p class="text-xs text-gray-600">කොච්චි</p>
+                    </div>
+                    
+                    <div class="comparison-item p-3 border rounded-lg cursor-pointer text-center" onclick="toggleProductSelection('cabbage')">
+                        <div class="w-12 h-12 mx-auto mb-2 bg-green-100 rounded-full flex items-center justify-center">
+                            🥬
+                        </div>
+                        <h4 class="font-medium text-sm">Cabbage</h4>
+                        <p class="text-xs text-gray-600">ගෝවා</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Comparison Results -->
+        <section class="mb-12 animate-on-scroll">
+            <div class="comparison-table">
+                <table class="w-full">
+                    <thead>
+                        <tr>
+                            <th class="text-left">Product</th>
+                            <th class="text-center">Colombo</th>
+                            <th class="text-center">Kandy</th>
+                            <th class="text-center">Galle</th>
+                            <th class="text-center">Dambulla</th>
+                            <th class="text-center">Best Price</th>
+                        </tr>
+                    </thead>
+                    <tbody id="comparisonResults">
+                        <tr>
+                            <td colspan="6" class="text-center py-8 text-gray-500">
+                                Select markets and products to see comparison
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Savings Summary -->
+        <section class="mb-12 animate-on-scroll">
+            <div class="bg-white rounded-lg p-6 shadow-lg">
+                <h2 class="text-2xl font-display font-bold mb-6 text-gray-800">Shopping Strategy</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="text-center p-4 bg-green-50 rounded-lg">
+                        <div class="text-3xl font-bold text-green-600 mb-2" id="totalSavings">Rs. 0</div>
+                        <div class="text-gray-600">Potential Savings</div>
+                    </div>
+                    
+                    <div class="text-center p-4 bg-blue-50 rounded-lg">
+                        <div class="text-3xl font-bold text-blue-600 mb-2" id="bestMarket">-</div>
+                        <div class="text-gray-600">Best Overall Market</div>
+                    </div>
+                    
+                    <div class="text-center p-4 bg-yellow-50 rounded-lg">
+                        <div class="text-3xl font-bold text-yellow-600 mb-2" id="marketsToVisit">0</div>
+                        <div class="text-gray-600">Markets to Visit</div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                    <h3 class="font-semibold mb-3">Recommended Shopping Route:</h3>
+                    <div id="shoppingRoute" class="text-gray-600">
+                        Select products to see optimal shopping route
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12 mt-16">
+        <div class="container mx-auto px-4 text-center">
+            <div class="mb-6">
+                <h3 class="text-2xl font-display font-bold mb-2">Sri Lanka Market Prices</h3>
+                <p class="text-gray-400">Your trusted source for local produce prices</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                <div>
+                    <h4 class="font-semibold mb-2">Markets Covered</h4>
+                    <p class="text-gray-400 text-sm">Colombo, Kandy, Galle, Nuwara Eliya, Dambulla, Embilipitiya, Kurunegala, Matara</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-2">Products</h4>
+                    <p class="text-gray-400 text-sm">Vegetables, Fruits, Spices, and other local produce</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-2">Data Sources</h4>
+                    <p class="text-gray-400 text-sm">HARTI, Local Market Reports, Real-time Updates</p>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 pt-6">
+                <p class="text-gray-400 text-sm">
+                    © 2024 Sri Lanka Market Prices. Data provided for informational purposes.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="main.js"></script>
+    
+    <script>
+        // Comparison page specific functionality
+        let selectedMarkets = [];
+        let selectedProducts = [];
+        
+        function toggleMarketSelection(market) {
+            const checkbox = document.querySelector(`.market-checkbox-${market.toLowerCase()}`);
+            const card = checkbox.closest('.comparison-card');
+            
+            if (selectedMarkets.includes(market)) {
+                selectedMarkets = selectedMarkets.filter(m => m !== market);
+                checkbox.classList.add('hidden');
+                card.classList.remove('selected');
+            } else {
+                selectedMarkets.push(market);
+                checkbox.classList.remove('hidden');
+                card.classList.add('selected');
+            }
+        }
+        
+        function toggleProductSelection(product) {
+            const item = event.currentTarget;
+            
+            if (selectedProducts.includes(product)) {
+                selectedProducts = selectedProducts.filter(p => p !== product);
+                item.classList.remove('border-green-500', 'bg-green-50');
+            } else {
+                selectedProducts.push(product);
+                item.classList.add('border-green-500', 'bg-green-50');
+            }
+        }
+        
+        function selectAllMarkets() {
+            const markets = ['Colombo', 'Kandy', 'Galle', 'Dambulla'];
+            markets.forEach(market => {
+                if (!selectedMarkets.includes(market)) {
+                    toggleMarketSelection(market);
+                }
+            });
+        }
+        
+        function compareSelectedMarkets() {
+            if (selectedMarkets.length === 0) {
+                showNotification('Please select at least one market');
+                return;
+            }
+            
+            if (selectedProducts.length === 0) {
+                selectedProducts = ['tomatoes', 'carrots', 'onions', 'chilies', 'cabbage'];
+            }
+            
+            generateComparisonTable();
+            calculateSavings();
+        }
+        
+        function generateComparisonTable() {
+            const tbody = document.getElementById('comparisonResults');
+            tbody.innerHTML = '';
+            
+            selectedProducts.forEach(productId => {
+                const product = findItemById(productId);
+                if (!product) return;
+                
+                const row = document.createElement('tr');
+                let bestPrice = Infinity;
+                let bestMarket = '';
+                
+                const marketPrices = {};
+                selectedMarkets.forEach(market => {
+                    // Simulate price variations by market
+                    const variation = (Math.random() - 0.5) * 0.2; // ±10% variation
+                    const price = Math.round(product.price * (1 + variation));
+                    marketPrices[market] = price;
+                    
+                    if (price < bestPrice) {
+                        bestPrice = price;
+                        bestMarket = market;
+                    }
+                });
+                
+                row.innerHTML = `
+                    <td class="font-medium">
+                        <div class="flex items-center">
+                            <span class="mr-2">${getProductEmoji(productId)}</span>
+                            <div>
+                                <div>${product.name}</div>
+                                <div class="text-xs text-gray-500">${product.sinhala}</div>
+                            </div>
+                        </div>
+                    </td>
+                    ${selectedMarkets.map(market => `
+                        <td class="text-center font-mono ${marketPrices[market] === bestPrice ? 'best-price' : ''}">
+                            Rs. ${marketPrices[market]}
+                        </td>
+                    `).join('')}
+                    <td class="text-center">
+                        <div class="price-highlight">
+                            ${bestMarket}<br>
+                            <span class="text-sm">Rs. ${bestPrice}</span>
+                        </div>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        function calculateSavings() {
+            // Calculate potential savings by shopping at best markets
+            let totalSavings = 0;
+            let marketCounts = {};
+            
+            selectedProducts.forEach(productId => {
+                const product = findItemById(productId);
+                if (!product) return;
+                
+                let minPrice = Infinity;
+                let maxPrice = 0;
+                let bestMarket = '';
+                
+                selectedMarkets.forEach(market => {
+                    const variation = (Math.random() - 0.5) * 0.2;
+                    const price = Math.round(product.price * (1 + variation));
+                    
+                    if (price < minPrice) {
+                        minPrice = price;
+                        bestMarket = market;
+                    }
+                    if (price > maxPrice) {
+                        maxPrice = price;
+                    }
+                });
+                
+                totalSavings += (maxPrice - minPrice);
+                marketCounts[bestMarket] = (marketCounts[bestMarket] || 0) + 1;
+            });
+            
+            // Find best overall market
+            let bestOverallMarket = '';
+            let maxCount = 0;
+            Object.keys(marketCounts).forEach(market => {
+                if (marketCounts[market] > maxCount) {
+                    maxCount = marketCounts[market];
+                    bestOverallMarket = market;
+                }
+            });
+            
+            // Update UI
+            document.getElementById('totalSavings').textContent = `Rs. ${totalSavings}`;
+            document.getElementById('bestMarket').textContent = bestOverallMarket || '-';
+            document.getElementById('marketsToVisit').textContent = Object.keys(marketCounts).length;
+            
+            // Generate shopping route
+            const route = Object.keys(marketCounts).map(market => 
+                `${market} (${marketCounts[market]} items)`
+            ).join(' → ');
+            document.getElementById('shoppingRoute').textContent = route || 'Select products to see route';
+        }
+        
+        function getProductEmoji(productId) {
+            const emojis = {
+                'tomatoes': '🍅',
+                'carrots': '🥕',
+                'onions': '🧅',
+                'chilies': '🌶️',
+                'cabbage': '🥬'
+            };
+            return emojis[productId] || '📦';
+        }
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up scroll animations
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, observerOptions);
+            
+            document.querySelectorAll('.animate-on-scroll').forEach(el => {
+                observer.observe(el);
+            });
+            
+            // Auto-select some markets and products for demo
+            setTimeout(() => {
+                toggleMarketSelection('Colombo');
+                toggleMarketSelection('Kandy');
+                compareSelectedMarkets();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
