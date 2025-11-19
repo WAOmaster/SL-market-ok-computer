@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Integration Test - SL Market Prices</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #F5F1E8;
+        }
+        h1 {
+            color: #2D5016;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section h2 {
+            color: #2D5016;
+            border-bottom: 2px solid #87A96B;
+            padding-bottom: 10px;
+        }
+        button {
+            background: #2D5016;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #87A96B;
+        }
+        .result {
+            background: #f9f9f9;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #87A96B;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .error {
+            background: #ffe6e6;
+            border-left-color: #DC143C;
+        }
+        .success {
+            background: #e6ffe6;
+            border-left-color: #2D5016;
+        }
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            margin-right: 10px;
+        }
+        .status.healthy {
+            background: #2D5016;
+            color: white;
+        }
+        .status.unhealthy {
+            background: #DC143C;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>🌾 Market Price API Integration Test</h1>
+
+    <div class="test-section">
+        <h2>Health Check</h2>
+        <button onclick="testHealthCheck()">Check API Health</button>
+        <div id="health-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Categories</h2>
+        <button onclick="testGetCategories()">Get All Categories</button>
+        <div id="categories-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Markets</h2>
+        <button onclick="testGetMarkets()">Get All Markets</button>
+        <div id="markets-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Produce Items</h2>
+        <button onclick="testGetProduce()">Get All Produce</button>
+        <button onclick="testSearchProduce()">Search "tomato"</button>
+        <div id="produce-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Current Prices</h2>
+        <button onclick="testGetPrices()">Get Current Prices</button>
+        <button onclick="testComparePrices()">Compare Prices (Tomatoes)</button>
+        <div id="prices-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Price History & Predictions</h2>
+        <button onclick="testPriceHistory()">Get History (Tomatoes)</button>
+        <button onclick="testPricePredictions()">Get 7-day Predictions (Tomatoes)</button>
+        <div id="history-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Shopping List</h2>
+        <button onclick="testCreateShoppingList()">Create Shopping List</button>
+        <button onclick="testOptimizeRoute()">Optimize Route</button>
+        <div id="shopping-result"></div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        // Display helper
+        function displayResult(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            const resultDiv = document.createElement('div');
+            resultDiv.className = isError ? 'result error' : 'result success';
+            resultDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            element.innerHTML = '';
+            element.appendChild(resultDiv);
+        }
+
+        // Health Check
+        async function testHealthCheck() {
+            try {
+                const result = await api.healthCheck();
+                const statusHTML = `<span class="status ${result.status}">${result.status.toUpperCase()}</span>`;
+                displayResult('health-result', result);
+            } catch (error) {
+                displayResult('health-result', { error: error.message }, true);
+            }
+        }
+
+        // Categories
+        async function testGetCategories() {
+            try {
+                const categories = await api.getCategories();
+                displayResult('categories-result', {
+                    count: categories.length,
+                    categories: categories
+                });
+            } catch (error) {
+                displayResult('categories-result', { error: error.message }, true);
+            }
+        }
+
+        // Markets
+        async function testGetMarkets() {
+            try {
+                const markets = await api.getMarkets();
+                displayResult('markets-result', {
+                    count: markets.length,
+                    markets: markets
+                });
+            } catch (error) {
+                displayResult('markets-result', { error: error.message }, true);
+            }
+        }
+
+        // Produce
+        async function testGetProduce() {
+            try {
+                const produce = await api.getProduce({ limit: 10 });
+                displayResult('produce-result', {
+                    count: produce.length,
+                    produce: produce
+                });
+            } catch (error) {
+                displayResult('produce-result', { error: error.message }, true);
+            }
+        }
+
+        async function testSearchProduce() {
+            try {
+                const results = await api.searchProduce('tomato');
+                displayResult('produce-result', {
+                    search: 'tomato',
+                    results: results
+                });
+            } catch (error) {
+                displayResult('produce-result', { error: error.message }, true);
+            }
+        }
+
+        // Prices
+        async function testGetPrices() {
+            try {
+                const prices = await api.getPrices({ limit: 10 });
+                displayResult('prices-result', {
+                    count: prices.length,
+                    prices: prices
+                });
+            } catch (error) {
+                displayResult('prices-result', { error: error.message }, true);
+            }
+        }
+
+        async function testComparePrices() {
+            try {
+                const comparison = await api.comparePrices([1]); // Tomatoes ID = 1
+                displayResult('prices-result', comparison);
+            } catch (error) {
+                displayResult('prices-result', { error: error.message }, true);
+            }
+        }
+
+        // History & Predictions
+        async function testPriceHistory() {
+            try {
+                const history = await api.getPriceHistory(1, { days: 30 }); // Tomatoes
+                displayResult('history-result', {
+                    produce_id: 1,
+                    days: 30,
+                    history: history
+                });
+            } catch (error) {
+                displayResult('history-result', { error: error.message }, true);
+            }
+        }
+
+        async function testPricePredictions() {
+            try {
+                const predictions = await api.getPricePredictions(1, 7); // Tomatoes, 7 days
+                displayResult('history-result', predictions);
+            } catch (error) {
+                displayResult('history-result', { error: error.message }, true);
+            }
+        }
+
+        // Shopping List
+        let createdListId = null;
+
+        async function testCreateShoppingList() {
+            try {
+                const listData = {
+                    user_id: "test_user_123",
+                    name: "Weekly Groceries",
+                    budget: 5000,
+                    items: [
+                        { produce_id: 1, quantity: 2, unit: "kg" },  // Tomatoes
+                        { produce_id: 2, quantity: 3, unit: "kg" },  // Potatoes
+                        { produce_id: 3, quantity: 1, unit: "kg" }   // Onions
+                    ]
+                };
+
+                const result = await api.createShoppingList(listData);
+                createdListId = result.id;
+                displayResult('shopping-result', result);
+            } catch (error) {
+                displayResult('shopping-result', { error: error.message }, true);
+            }
+        }
+
+        async function testOptimizeRoute() {
+            if (!createdListId) {
+                displayResult('shopping-result', {
+                    error: "Please create a shopping list first"
+                }, true);
+                return;
+            }
+
+            try {
+                const route = await api.optimizeShoppingRoute(
+                    createdListId,
+                    6.9271,  // Colombo coordinates
+                    79.8612
+                );
+                displayResult('shopping-result', route);
+            } catch (error) {
+                displayResult('shopping-result', { error: error.message }, true);
+            }
+        }
+
+        // Auto-run health check on load
+        window.addEventListener('load', () => {
+            testHealthCheck();
+        });
+    </script>
+</body>
+</html>
