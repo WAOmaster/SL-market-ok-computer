@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Price trends and predictions for Sri Lankan market produce">
+    <title>📈 Price Trends - SL Market Prices</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@500;700&family=Noto+Sans+Sinhala:wght@400;500;700&family=Noto+Sans+Tamil:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Modern Theme CSS -->
+    <link rel="stylesheet" href="styles/modern-theme.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+
+    <style>
+        .trends-container {
+            margin-top: var(--space-8);
+        }
+
+        .selector-section {
+            background: var(--bg-card);
+            padding: var(--space-6);
+            border-radius: var(--border-radius-xl);
+            box-shadow: var(--shadow-md);
+            margin-bottom: var(--space-8);
+        }
+
+        .selector-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: var(--space-4);
+            margin-top: var(--space-4);
+        }
+
+        @media (max-width: 768px) {
+            .selector-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-container {
+            background: var(--bg-card);
+            padding: var(--space-6);
+            border-radius: var(--border-radius-xl);
+            box-shadow: var(--shadow-lg);
+            margin-bottom: var(--space-8);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-6);
+        }
+
+        .chart-title {
+            font-family: var(--font-accent);
+            font-size: var(--text-xl);
+            font-weight: var(--font-bold);
+            color: var(--color-primary);
+        }
+
+        .chart-canvas {
+            position: relative;
+            height: 400px;
+        }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-6);
+            margin-bottom: var(--space-8);
+        }
+
+        .insight-card {
+            background: var(--bg-card);
+            padding: var(--space-6);
+            border-radius: var(--border-radius-xl);
+            box-shadow: var(--shadow-md);
+            border-left: 4px solid var(--color-primary);
+        }
+
+        .insight-icon {
+            font-size: 2.5rem;
+            margin-bottom: var(--space-3);
+        }
+
+        .insight-title {
+            font-family: var(--font-accent);
+            font-size: var(--text-lg);
+            font-weight: var(--font-semibold);
+            color: var(--text-primary);
+            margin-bottom: var(--space-2);
+        }
+
+        .insight-value {
+            font-family: var(--font-mono);
+            font-size: var(--text-2xl);
+            font-weight: var(--font-bold);
+            color: var(--color-primary);
+            margin-bottom: var(--space-2);
+        }
+
+        .insight-description {
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            line-height: var(--leading-relaxed);
+        }
+
+        .prediction-card {
+            background: var(--gradient-sunset);
+            color: var(--text-inverse);
+            padding: var(--space-8);
+            border-radius: var(--border-radius-xl);
+            text-align: center;
+        }
+
+        .prediction-value {
+            font-family: var(--font-mono);
+            font-size: var(--text-3xl);
+            font-weight: var(--font-extrabold);
+            margin: var(--space-4) 0;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: var(--border-radius-full);
+            overflow: hidden;
+            margin-top: var(--space-4);
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: white;
+            transition: width var(--transition-slow);
+        }
+
+        .market-comparison-section {
+            background: var(--bg-card);
+            padding: var(--space-6);
+            border-radius: var(--border-radius-xl);
+            box-shadow: var(--shadow-md);
+        }
+
+        .market-list {
+            display: grid;
+            gap: var(--space-3);
+            margin-top: var(--space-4);
+        }
+
+        .market-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-3);
+            border-radius: var(--border-radius-lg);
+            transition: background var(--transition-fast);
+            cursor: pointer;
+        }
+
+        .market-item:hover {
+            background: var(--bg-overlay);
+        }
+
+        .market-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--color-primary);
+        }
+
+        .market-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+        }
+
+        .market-item-name {
+            flex: 1;
+            font-weight: var(--font-semibold);
+        }
+
+        .market-item-price {
+            font-family: var(--font-mono);
+            font-weight: var(--font-bold);
+            color: var(--color-primary);
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar" role="navigation" aria-label="Main navigation">
+        <div class="navbar-container">
+            <a href="index-new.html" class="navbar-brand">
+                <span class="navbar-brand-icon">🌾</span>
+                <span>SL Market Prices</span>
+            </a>
+
+            <button class="navbar-toggle" aria-label="Toggle navigation menu" id="navToggle">
+                ☰
+            </button>
+
+            <ul class="navbar-nav" id="navMenu">
+                <li><a href="index-new.html" class="navbar-link">Dashboard</a></li>
+                <li><a href="compare-new.html" class="navbar-link">Compare</a></li>
+                <li><a href="trends-new.html" class="navbar-link active">Trends</a></li>
+                <li><a href="list-new.html" class="navbar-link">My List</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">Price Trends & Predictions</h1>
+                <p class="hero-subtitle">
+                    Track price history and get <strong>AI-powered forecasts</strong> for smart shopping
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main id="main-content" class="container trends-container">
+
+        <!-- Product & Market Selector -->
+        <section class="selector-section animate-fade-in-up">
+            <h2 style="font-family: var(--font-accent); font-size: var(--text-xl); margin-bottom: var(--space-2);">
+                Select Product & Time Period
+            </h2>
+            <div class="selector-grid">
+                <div class="form-group">
+                    <label class="form-label">Product</label>
+                    <select class="form-select" id="produceSelect">
+                        <option value="">Select a product...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Market</label>
+                    <select class="form-select" id="marketSelect">
+                        <option value="">All Markets (Average)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Time Period</label>
+                    <select class="form-select" id="periodSelect">
+                        <option value="7">Last 7 Days</option>
+                        <option value="14">Last 14 Days</option>
+                        <option value="30" selected>Last 30 Days</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- Price History Chart -->
+        <section class="chart-container animate-fade-in-up">
+            <div class="chart-header">
+                <h2 class="chart-title">📊 Price History</h2>
+                <div class="flex gap-2">
+                    <button class="btn btn-sm btn-ghost" id="downloadChart">📥 Download</button>
+                </div>
+            </div>
+            <div class="chart-canvas">
+                <canvas id="priceChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Insights Grid -->
+        <section class="insights-grid">
+            <div class="insight-card stagger-item">
+                <div class="insight-icon">📈</div>
+                <h3 class="insight-title">Current Price</h3>
+                <div class="insight-value">₨<span id="currentPrice">-</span></div>
+                <p class="insight-description">
+                    Latest market price for <strong id="selectedProductName">-</strong>
+                </p>
+            </div>
+
+            <div class="insight-card stagger-item">
+                <div class="insight-icon">📊</div>
+                <h3 class="insight-title">Average (30 Days)</h3>
+                <div class="insight-value">₨<span id="avgPrice">-</span></div>
+                <p class="insight-description">
+                    Mean price over the selected period
+                </p>
+            </div>
+
+            <div class="insight-card stagger-item">
+                <div class="insight-icon">💹</div>
+                <h3 class="insight-title">Price Change</h3>
+                <div class="insight-value"><span id="priceChange">-</span>%</div>
+                <p class="insight-description">
+                    Change from 30 days ago to today
+                </p>
+            </div>
+
+            <div class="insight-card stagger-item">
+                <div class="insight-icon">🎯</div>
+                <h3 class="insight-title">Best Day to Buy</h3>
+                <div class="insight-value" style="font-size: var(--text-xl);"><span id="bestDay">-</span></div>
+                <p class="insight-description">
+                    Lowest average prices typically on this day
+                </p>
+            </div>
+        </section>
+
+        <!-- AI Prediction Card -->
+        <section class="prediction-card animate-scale-in">
+            <div class="insight-icon">🤖</div>
+            <h2 style="font-size: var(--text-2xl); margin-bottom: var(--space-2);">
+                AI Price Prediction (7 Days)
+            </h2>
+            <p style="opacity: 0.9; margin-bottom: var(--space-2);">
+                Based on historical trends and seasonal patterns
+            </p>
+            <div class="prediction-value">₨<span id="predictedPrice">-</span></div>
+            <p style="font-size: var(--text-sm); opacity: 0.9;">
+                Range: ₨<span id="lowerBound">-</span> - ₨<span id="upperBound">-</span>
+            </p>
+            <div>
+                <p style="font-size: var(--text-sm); margin-top: var(--space-4); margin-bottom: var(--space-2);">
+                    Confidence: <strong><span id="confidence">-</span>%</strong>
+                </p>
+                <div class="confidence-bar">
+                    <div class="confidence-fill" id="confidenceFill" style="width: 0%;"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Market Comparison -->
+        <section class="market-comparison-section">
+            <h2 class="chart-title" style="margin-bottom: var(--space-2);">
+                🗺️ Compare Across Markets
+            </h2>
+            <p style="color: var(--text-secondary); margin-bottom: var(--space-4);">
+                Select markets to compare price trends
+            </p>
+            <div class="market-list" id="marketList">
+                <!-- Market checkboxes will be inserted here -->
+            </div>
+
+            <div class="chart-container" style="margin-top: var(--space-6);">
+                <div class="chart-canvas">
+                    <canvas id="marketComparisonChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer style="background: var(--stone-100); padding: var(--space-8) 0; margin-top: var(--space-16); text-align: center;">
+        <div class="container">
+            <p style="color: var(--text-secondary);">
+                🌾 Sri Lanka Market Prices • Real-time produce pricing across Sri Lanka
+            </p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/demo-data.js"></script>
+    <script>
+        // Trends State
+        let selectedProduce = null;
+        let selectedMarket = null;
+        let selectedPeriod = 30;
+        let priceChart = null;
+        let marketComparisonChart = null;
+        let selectedMarketsForComparison = [];
+
+        const marketColors = {
+            1: '#1A4D2E',
+            2: '#FF6B35',
+            3: '#F7B731',
+            4: '#6A1B9A',
+            5: '#3B82F6'
+        };
+
+        // Initialize
+        function initTrends() {
+            populateSelectors();
+            attachEventListeners();
+
+            // Check for URL parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const produceParam = urlParams.get('produce');
+            if (produceParam) {
+                selectedProduce = parseInt(produceParam);
+                document.getElementById('produceSelect').value = selectedProduce;
+                updateTrends();
+            }
+        }
+
+        // Populate Selectors
+        function populateSelectors() {
+            const produceSelect = document.getElementById('produceSelect');
+            const marketSelect = document.getElementById('marketSelect');
+
+            // Populate products
+            DEMO_DATA.produce.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.id;
+                option.textContent = `${product.icon} ${product.name}`;
+                produceSelect.appendChild(option);
+            });
+
+            // Populate markets
+            DEMO_DATA.markets.forEach(market => {
+                const option = document.createElement('option');
+                option.value = market.id;
+                option.textContent = market.name;
+                marketSelect.appendChild(option);
+            });
+
+            // Populate market comparison list
+            renderMarketList();
+        }
+
+        // Render Market List
+        function renderMarketList() {
+            const container = document.getElementById('marketList');
+
+            container.innerHTML = DEMO_DATA.markets.map(market => `
+                <label class="market-item">
+                    <input
+                        type="checkbox"
+                        value="${market.id}"
+                        class="market-checkbox"
+                        onchange="toggleMarketComparison(${market.id})"
+                    >
+                    <div class="market-color" style="background: ${marketColors[market.id]};"></div>
+                    <span class="market-item-name">${market.name}</span>
+                    <span class="market-item-price" id="marketPrice${market.id}">-</span>
+                </label>
+            `).join('');
+        }
+
+        // Attach Event Listeners
+        function attachEventListeners() {
+            document.getElementById('produceSelect').addEventListener('change', (e) => {
+                selectedProduce = parseInt(e.target.value) || null;
+                updateTrends();
+            });
+
+            document.getElementById('marketSelect').addEventListener('change', (e) => {
+                selectedMarket = parseInt(e.target.value) || null;
+                updateTrends();
+            });
+
+            document.getElementById('periodSelect').addEventListener('change', (e) => {
+                selectedPeriod = parseInt(e.target.value);
+                updateTrends();
+            });
+
+            document.getElementById('downloadChart').addEventListener('click', downloadChart);
+
+            // Mobile nav toggle
+            document.getElementById('navToggle').addEventListener('click', () => {
+                document.getElementById('navMenu').classList.toggle('hidden');
+            });
+        }
+
+        // Update Trends
+        function updateTrends() {
+            if (!selectedProduce) return;
+
+            const marketId = selectedMarket || DEMO_DATA.markets[0].id;
+            const history = DEMO_DATA.generatePriceHistory(selectedProduce, marketId, selectedPeriod);
+            const predictions = DEMO_DATA.generatePricePredictions(selectedProduce, marketId);
+            const product = DEMO_DATA.produce.find(p => p.id === selectedProduce);
+
+            // Update insights
+            updateInsights(history, predictions, product);
+
+            // Update chart
+            updateChart(history, predictions, product);
+
+            // Update market prices
+            updateMarketPrices();
+
+            // Update comparison chart if markets selected
+            if (selectedMarketsForComparison.length > 0) {
+                updateMarketComparisonChart();
+            }
+        }
+
+        // Update Insights
+        function updateInsights(history, predictions, product) {
+            const currentPrice = history[history.length - 1].price;
+            const oldPrice = history[0].price;
+            const avgPrice = history.reduce((sum, h) => sum + h.price, 0) / history.length;
+            const priceChange = ((currentPrice - oldPrice) / oldPrice * 100).toFixed(1);
+
+            document.getElementById('selectedProductName').textContent = product.name;
+            document.getElementById('currentPrice').textContent = currentPrice.toFixed(2);
+            document.getElementById('avgPrice').textContent = avgPrice.toFixed(2);
+            document.getElementById('priceChange').textContent = priceChange;
+
+            // Best day (simplified - just use "Sunday")
+            document.getElementById('bestDay').textContent = 'Sunday';
+
+            // Predictions
+            const avgPrediction = predictions[3]; // Middle of 7-day prediction
+            document.getElementById('predictedPrice').textContent = avgPrediction.predicted_price.toFixed(2);
+            document.getElementById('lowerBound').textContent = avgPrediction.lower_bound.toFixed(2);
+            document.getElementById('upperBound').textContent = avgPrediction.upper_bound.toFixed(2);
+            document.getElementById('confidence').textContent = avgPrediction.confidence;
+            document.getElementById('confidenceFill').style.width = avgPrediction.confidence + '%';
+        }
+
+        // Update Chart
+        function updateChart(history, predictions, product) {
+            const ctx = document.getElementById('priceChart').getContext('2d');
+
+            // Prepare data
+            const historicalDates = history.map(h => h.date);
+            const historicalPrices = history.map(h => h.price);
+            const predictionDates = predictions.map(p => p.date);
+            const predictionPrices = predictions.map(p => p.predicted_price);
+
+            // Destroy existing chart
+            if (priceChart) {
+                priceChart.destroy();
+            }
+
+            // Create new chart
+            priceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [...historicalDates, ...predictionDates],
+                    datasets: [
+                        {
+                            label: 'Historical Price',
+                            data: [...historicalPrices, ...Array(predictions.length).fill(null)],
+                            borderColor: '#1A4D2E',
+                            backgroundColor: 'rgba(26, 77, 46, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Predicted Price',
+                            data: [...Array(history.length).fill(null), ...predictionPrices],
+                            borderColor: '#FF6B35',
+                            backgroundColor: 'rgba(255, 107, 53, 0.1)',
+                            borderWidth: 3,
+                            borderDash: [5, 5],
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    family: 'Space Grotesk',
+                                    size: 14
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Price: ₨${context.parsed.y.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            ticks: {
+                                callback: function(value) {
+                                    return '₨' + value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update Market Prices
+        function updateMarketPrices() {
+            if (!selectedProduce) return;
+
+            DEMO_DATA.markets.forEach(market => {
+                const price = allPrices.find(p =>
+                    p.produce_id === selectedProduce && p.market_id === market.id
+                );
+
+                if (price) {
+                    document.getElementById(`marketPrice${market.id}`).textContent = `₨${price.price}`;
+                }
+            });
+        }
+
+        // Toggle Market Comparison
+        function toggleMarketComparison(marketId) {
+            const index = selectedMarketsForComparison.indexOf(marketId);
+
+            if (index > -1) {
+                selectedMarketsForComparison.splice(index, 1);
+            } else {
+                selectedMarketsForComparison.push(marketId);
+            }
+
+            updateMarketComparisonChart();
+        }
+
+        // Update Market Comparison Chart
+        function updateMarketComparisonChart() {
+            if (!selectedProduce || selectedMarketsForComparison.length === 0) {
+                return;
+            }
+
+            const ctx = document.getElementById('marketComparisonChart').getContext('2d');
+
+            const datasets = selectedMarketsForComparison.map(marketId => {
+                const market = DEMO_DATA.markets.find(m => m.id === marketId);
+                const history = DEMO_DATA.generatePriceHistory(selectedProduce, marketId, selectedPeriod);
+
+                return {
+                    label: market.name,
+                    data: history.map(h => h.price),
+                    borderColor: marketColors[marketId],
+                    backgroundColor: marketColors[marketId] + '20',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: false
+                };
+            });
+
+            const history = DEMO_DATA.generatePriceHistory(selectedProduce, selectedMarketsForComparison[0], selectedPeriod);
+            const dates = history.map(h => h.date);
+
+            if (marketComparisonChart) {
+                marketComparisonChart.destroy();
+            }
+
+            marketComparisonChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            ticks: {
+                                callback: function(value) {
+                                    return '₨' + value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Download Chart
+        function downloadChart() {
+            if (priceChart) {
+                const url = priceChart.toBase64Image();
+                const link = document.createElement('a');
+                link.download = 'price-chart.png';
+                link.href = url;
+                link.click();
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', initTrends);
+    </script>
+</body>
+</html>

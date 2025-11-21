@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Smart shopping list with route optimization">
+    <title>🛒 My Shopping List - SL Market Prices</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght:500;700&family=Noto+Sans+Sinhala:wght@400;500;700&family=Noto+Sans+Tamil:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Modern Theme CSS -->
+    <link rel="stylesheet" href="styles/modern-theme.css">
+
+    <!-- Leaflet CSS for Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        .list-container {
+            margin-top: var(--space-8);
+        }
+
+        .budget-tracker {
+            background: var(--gradient-primary);
+            color: var(--text-inverse);
+            padding: var(--space-8);
+            border-radius: var(--border-radius-xl);
+            margin-bottom: var(--space-8);
+        }
+
+        .budget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-4);
+        }
+
+        .budget-amount {
+            font-family: var(--font-mono);
+            font-size: var(--text-2xl);
+            font-weight: var(--font-bold);
+        }
+
+        .budget-progress {
+            width: 100%;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: var(--border-radius-full);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .budget-fill {
+            height: 100%;
+            background: white;
+            transition: width var(--transition-slow);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: var(--space-3);
+            font-weight: var(--font-bold);
+            color: var(--color-primary);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-8);
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .list-section {
+            background: var(--bg-card);
+            padding: var(--space-6);
+            border-radius: var(--border-radius-xl);
+            box-shadow: var(--shadow-md);
+        }
+
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-6);
+        }
+
+        .add-item-form {
+            background: var(--stone-50);
+            padding: var(--space-4);
+            border-radius: var(--border-radius-lg);
+            margin-bottom: var(--space-6);
+        }
+
+        .shopping-items {
+            display: grid;
+            gap: var(--space-3);
+        }
+
+        .shopping-item {
+            background: white;
+            padding: var(--space-4);
+            border-radius: var(--border-radius-lg);
+            border: 2px solid var(--border-color);
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            gap: var(--space-3);
+            align-items: center;
+            transition: all var(--transition-fast);
+        }
+
+        .shopping-item:hover {
+            border-color: var(--color-primary);
+            box-shadow: var(--shadow-md);
+        }
+
+        .shopping-item.completed {
+            opacity: 0.6;
+        }
+
+        .shopping-item.completed .item-name {
+            text-decoration: line-through;
+        }
+
+        .item-checkbox {
+            width: 24px;
+            height: 24px;
+            accent-color: var(--color-primary);
+            cursor: pointer;
+        }
+
+        .item-icon {
+            font-size: 2rem;
+        }
+
+        .item-details {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: var(--font-semibold);
+            color: var(--text-primary);
+            margin-bottom: var(--space-1);
+        }
+
+        .item-info {
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+        }
+
+        .item-quantity {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .quantity-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--border-color);
+            background: white;
+            border-radius: var(--border-radius-md);
+            cursor: pointer;
+            font-weight: bold;
+            transition: all var(--transition-fast);
+        }
+
+        .quantity-btn:hover {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
+
+        .quantity-value {
+            font-family: var(--font-mono);
+            font-weight: var(--font-semibold);
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .item-price {
+            font-family: var(--font-mono);
+            font-weight: var(--font-bold);
+            color: var(--color-primary);
+            text-align: right;
+        }
+
+        .item-remove {
+            background: none;
+            border: none;
+            color: var(--tomato-red);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: var(--space-2);
+            border-radius: var(--border-radius-md);
+            transition: all var(--transition-fast);
+        }
+
+        .item-remove:hover {
+            background: rgba(231, 76, 60, 0.1);
+        }
+
+        .map-section {
+            background: var(--bg-card);
+            padding: var(--space-6);
+            border-radius: var(--border-radius-xl);
+            box-shadow: var(--shadow-md);
+        }
+
+        #map {
+            width: 100%;
+            height: 400px;
+            border-radius: var(--border-radius-lg);
+            margin-bottom: var(--space-4);
+        }
+
+        .route-info {
+            background: var(--stone-50);
+            padding: var(--space-4);
+            border-radius: var(--border-radius-lg);
+        }
+
+        .route-list {
+            display: grid;
+            gap: var(--space-3);
+            margin-top: var(--space-4);
+        }
+
+        .route-stop {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-3);
+            background: white;
+            border-radius: var(--border-radius-md);
+        }
+
+        .route-number {
+            width: 32px;
+            height: 32px;
+            background: var(--color-primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .route-stop-details {
+            flex: 1;
+        }
+
+        .route-stop-name {
+            font-weight: var(--font-semibold);
+        }
+
+        .route-stop-items {
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+        }
+
+        .savings-summary {
+            background: var(--gradient-sunset);
+            color: var(--text-inverse);
+            padding: var(--space-6);
+            border-radius: var(--border-radius-xl);
+            margin-top: var(--space-8);
+            text-align: center;
+        }
+
+        .savings-amount {
+            font-family: var(--font-mono);
+            font-size: var(--text-3xl);
+            font-weight: var(--font-extrabold);
+            margin: var(--space-2) 0;
+        }
+
+        .empty-list {
+            text-align: center;
+            padding: var(--space-12);
+            color: var(--text-muted);
+        }
+
+        .empty-list-icon {
+            font-size: 4rem;
+            margin-bottom: var(--space-4);
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar" role="navigation" aria-label="Main navigation">
+        <div class="navbar-container">
+            <a href="index-new.html" class="navbar-brand">
+                <span class="navbar-brand-icon">🌾</span>
+                <span>SL Market Prices</span>
+            </a>
+
+            <button class="navbar-toggle" aria-label="Toggle navigation menu" id="navToggle">
+                ☰
+            </button>
+
+            <ul class="navbar-nav" id="navMenu">
+                <li><a href="index-new.html" class="navbar-link">Dashboard</a></li>
+                <li><a href="compare-new.html" class="navbar-link">Compare</a></li>
+                <li><a href="trends-new.html" class="navbar-link">Trends</a></li>
+                <li><a href="list-new.html" class="navbar-link active">My List</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">Smart Shopping List</h1>
+                <p class="hero-subtitle">
+                    Add items, track your budget, and get the <strong>optimal shopping route</strong>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main id="main-content" class="container list-container">
+
+        <!-- Budget Tracker -->
+        <section class="budget-tracker animate-fade-in-up">
+            <div class="budget-header">
+                <div>
+                    <h3 style="font-size: var(--text-lg); margin-bottom: var(--space-2);">Budget Tracker</h3>
+                    <div class="budget-amount">
+                        ₨<span id="currentSpend">0</span> / ₨<span id="totalBudget">5000</span>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: var(--text-sm); opacity: 0.9;">Remaining</div>
+                    <div class="budget-amount">₨<span id="remaining">5000</span></div>
+                </div>
+            </div>
+            <div class="budget-progress">
+                <div class="budget-fill" id="budgetFill" style="width: 0%;">
+                    <span id="budgetPercent">0%</span>
+                </div>
+            </div>
+            <div style="margin-top: var(--space-4);">
+                <label style="font-size: var(--text-sm); opacity: 0.9; display: block; margin-bottom: var(--space-2);">
+                    Set Budget:
+                </label>
+                <input
+                    type="range"
+                    min="1000"
+                    max="20000"
+                    step="500"
+                    value="5000"
+                    class="form-input"
+                    id="budgetSlider"
+                    style="width: 100%;"
+                >
+            </div>
+        </section>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+
+            <!-- Shopping List Section -->
+            <section class="list-section">
+                <div class="list-header">
+                    <h2 class="section-title">🛒 Shopping List</h2>
+                    <button class="btn btn-ghost btn-sm" onclick="clearList()">Clear All</button>
+                </div>
+
+                <!-- Add Item Form -->
+                <div class="add-item-form">
+                    <div class="search-bar" style="margin-bottom: 0;">
+                        <span class="search-icon">+</span>
+                        <input
+                            type="search"
+                            class="search-input"
+                            placeholder="Add item to list..."
+                            id="addItemInput"
+                            autocomplete="off"
+                        >
+                    </div>
+                    <div id="addItemDropdown" class="autocomplete-dropdown hidden"></div>
+                </div>
+
+                <!-- Shopping Items -->
+                <div class="shopping-items" id="shoppingItems">
+                    <!-- Items will be inserted here -->
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyList" class="empty-list">
+                    <div class="empty-list-icon">🛒</div>
+                    <h3>Your list is empty</h3>
+                    <p>Add items above to start building your shopping list</p>
+                </div>
+
+                <!-- List Total -->
+                <div id="listTotal" class="hidden" style="margin-top: var(--space-6); padding-top: var(--space-6); border-top: 2px solid var(--border-color);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-family: var(--font-accent); font-size: var(--text-xl); font-weight: bold;">
+                            Total (<span id="itemCount">0</span> items)
+                        </span>
+                        <span style="font-family: var(--font-mono); font-size: var(--text-2xl); font-weight: bold; color: var(--color-primary);">
+                            ₨<span id="totalPrice">0</span>
+                        </span>
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%; margin-top: var(--space-4);" onclick="optimizeRoute()">
+                        🗺️ Optimize Shopping Route
+                    </button>
+                </div>
+            </section>
+
+            <!-- Map & Route Section -->
+            <section class="map-section">
+                <h2 class="section-title" style="margin-bottom: var(--space-4);">🗺️ Optimized Route</h2>
+
+                <!-- Map -->
+                <div id="map"></div>
+
+                <!-- Route Information -->
+                <div class="route-info" id="routeInfo">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
+                        <h3 style="font-family: var(--font-accent); font-weight: bold;">Route Summary</h3>
+                        <span class="badge badge-primary">3 Stops</span>
+                    </div>
+
+                    <div class="route-list" id="routeList">
+                        <!-- Route stops will be inserted here -->
+                    </div>
+
+                    <div style="margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-between; font-size: var(--text-sm); color: var(--text-secondary);">
+                            <span>Total Distance:</span>
+                            <strong id="totalDistance">12.5 km</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: var(--text-sm); color: var(--text-secondary); margin-top: var(--space-2);">
+                            <span>Est. Travel Time:</span>
+                            <strong id="travelTime">35 min</strong>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+        <!-- Savings Summary -->
+        <section id="savingsSummary" class="savings-summary hidden">
+            <div style="font-size: 1.5rem;">💰</div>
+            <h2 style="font-size: var(--text-2xl); margin: var(--space-2) 0;">Smart Shopping Savings</h2>
+            <p style="opacity: 0.9; margin-bottom: var(--space-2);">
+                By shopping at the best markets for each item, you save:
+            </p>
+            <div class="savings-amount">₨<span id="totalSavings">0</span></div>
+            <p style="font-size: var(--text-sm); opacity: 0.9;">
+                That's <strong><span id="savingsPercent">0</span>%</strong> compared to buying everything at one market!
+            </p>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer style="background: var(--stone-100); padding: var(--space-8) 0; margin-top: var(--space-16); text-align: center;">
+        <div class="container">
+            <p style="color: var(--text-secondary);">
+                🌾 Sri Lanka Market Prices • Real-time produce pricing across Sri Lanka
+            </p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/demo-data.js"></script>
+    <script>
+        // Shopping List State
+        let shoppingList = [];
+        let budget = 5000;
+        let map = null;
+        let markers = [];
+
+        // Initialize
+        function initList() {
+            initMap();
+            attachEventListeners();
+            loadSavedList();
+            updateBudget();
+        }
+
+        // Initialize Map
+        function initMap() {
+            // Center on Colombo
+            map = L.map('map').setView([6.9271, 79.8612], 11);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Add market markers
+            DEMO_DATA.markets.forEach(market => {
+                const marker = L.marker([market.latitude, market.longitude])
+                    .bindPopup(`<strong>${market.name}</strong><br>${market.location}`)
+                    .addTo(map);
+                markers.push(marker);
+            });
+        }
+
+        // Attach Event Listeners
+        function attachEventListeners() {
+            const addInput = document.getElementById('addItemInput');
+            const dropdown = document.getElementById('addItemDropdown');
+
+            // Search autocomplete
+            addInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+
+                if (query.length < 2) {
+                    dropdown.classList.add('hidden');
+                    return;
+                }
+
+                const matches = DEMO_DATA.produce.filter(p =>
+                    p.name.toLowerCase().includes(query) ||
+                    p.name_sinhala.includes(query) ||
+                    p.name_tamil.includes(query)
+                );
+
+                if (matches.length > 0) {
+                    renderAddItemDropdown(matches);
+                    dropdown.classList.remove('hidden');
+                } else {
+                    dropdown.classList.add('hidden');
+                }
+            });
+
+            // Budget slider
+            document.getElementById('budgetSlider').addEventListener('input', (e) => {
+                budget = parseInt(e.target.value);
+                updateBudget();
+            });
+
+            // Close dropdown
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.add-item-form')) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+
+            // Mobile nav
+            document.getElementById('navToggle').addEventListener('click', () => {
+                document.getElementById('navMenu').classList.toggle('hidden');
+            });
+        }
+
+        // Render Add Item Dropdown
+        function renderAddItemDropdown(products) {
+            const dropdown = document.getElementById('addItemDropdown');
+
+            dropdown.innerHTML = products.slice(0, 6).map(product => {
+                const price = allPrices.find(p => p.produce_id === product.id);
+                return `
+                    <div class="autocomplete-item" onclick="addToList(${product.id})">
+                        <span class="icon">${product.icon}</span>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600;">${product.name}</div>
+                            <div style="font-size: var(--text-sm); color: var(--text-secondary);">
+                                ${product.name_sinhala}
+                            </div>
+                        </div>
+                        <div style="font-family: var(--font-mono); font-weight: bold; color: var(--color-primary);">
+                            ₨${price ? price.price : '-'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Add to List
+        function addToList(produceId) {
+            // Check if already in list
+            if (shoppingList.find(item => item.produceId === produceId)) {
+                return;
+            }
+
+            const product = DEMO_DATA.produce.find(p => p.id === produceId);
+            const bestPrice = getBestPriceForProduct(produceId);
+
+            shoppingList.push({
+                produceId: produceId,
+                product: product,
+                quantity: 1,
+                price: bestPrice.price,
+                market: bestPrice.market,
+                completed: false
+            });
+
+            renderList();
+            updateBudget();
+            saveList();
+
+            // Clear input
+            document.getElementById('addItemInput').value = '';
+            document.getElementById('addItemDropdown').classList.add('hidden');
+        }
+
+        // Get Best Price for Product
+        function getBestPriceForProduct(produceId) {
+            const prices = allPrices.filter(p => p.produce_id === produceId);
+            return prices.reduce((best, current) =>
+                current.price < best.price ? current : best
+            );
+        }
+
+        // Render List
+        function renderList() {
+            const container = document.getElementById('shoppingItems');
+            const emptyState = document.getElementById('emptyList');
+            const totalSection = document.getElementById('listTotal');
+
+            if (shoppingList.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                totalSection.classList.add('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            totalSection.classList.remove('hidden');
+
+            container.innerHTML = shoppingList.map((item, index) => `
+                <div class="shopping-item ${item.completed ? 'completed' : ''} stagger-item" style="animation-delay: ${index * 0.05}s;">
+                    <input
+                        type="checkbox"
+                        class="item-checkbox"
+                        ${item.completed ? 'checked' : ''}
+                        onchange="toggleComplete(${index})"
+                    >
+                    <div class="item-icon">${item.product.icon}</div>
+                    <div class="item-details">
+                        <div class="item-name">${item.product.name}</div>
+                        <div class="item-info">
+                            📍 Best at ${item.market.name} • ${item.product.unit}
+                        </div>
+                    </div>
+                    <div class="item-quantity">
+                        <button class="quantity-btn" onclick="updateQuantity(${index}, -1)">−</button>
+                        <span class="quantity-value">${item.quantity}</span>
+                        <button class="quantity-btn" onclick="updateQuantity(${index}, 1)">+</button>
+                    </div>
+                    <div class="item-price">₨${(item.price * item.quantity).toFixed(2)}</div>
+                    <button class="item-remove" onclick="removeFromList(${index})" aria-label="Remove item">×</button>
+                </div>
+            `).join('');
+
+            updateTotals();
+        }
+
+        // Toggle Complete
+        function toggleComplete(index) {
+            shoppingList[index].completed = !shoppingList[index].completed;
+            renderList();
+            saveList();
+        }
+
+        // Update Quantity
+        function updateQuantity(index, change) {
+            shoppingList[index].quantity = Math.max(1, shoppingList[index].quantity + change);
+            renderList();
+            updateBudget();
+            saveList();
+        }
+
+        // Remove from List
+        function removeFromList(index) {
+            shoppingList.splice(index, 1);
+            renderList();
+            updateBudget();
+            saveList();
+        }
+
+        // Clear List
+        function clearList() {
+            if (confirm('Clear all items from your shopping list?')) {
+                shoppingList = [];
+                renderList();
+                updateBudget();
+                saveList();
+            }
+        }
+
+        // Update Totals
+        function updateTotals() {
+            const total = shoppingList.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const itemCount = shoppingList.length;
+
+            document.getElementById('totalPrice').textContent = total.toFixed(2);
+            document.getElementById('itemCount').textContent = itemCount;
+        }
+
+        // Update Budget
+        function updateBudget() {
+            const currentSpend = shoppingList.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const remaining = budget - currentSpend;
+            const percent = (currentSpend / budget * 100).toFixed(0);
+
+            document.getElementById('totalBudget').textContent = budget;
+            document.getElementById('currentSpend').textContent = currentSpend.toFixed(2);
+            document.getElementById('remaining').textContent = Math.max(0, remaining).toFixed(2);
+            document.getElementById('budgetPercent').textContent = Math.min(percent, 100) + '%';
+            document.getElementById('budgetFill').style.width = Math.min(percent, 100) + '%';
+
+            // Change color if over budget
+            const fillElement = document.getElementById('budgetFill');
+            if (currentSpend > budget) {
+                fillElement.style.background = '#E74C3C';
+            } else {
+                fillElement.style.background = 'white';
+            }
+        }
+
+        // Optimize Route
+        function optimizeRoute() {
+            if (shoppingList.length === 0) return;
+
+            // Group items by market
+            const marketGroups = {};
+
+            shoppingList.forEach(item => {
+                const marketId = item.market.id;
+                if (!marketGroups[marketId]) {
+                    marketGroups[marketId] = {
+                        market: item.market,
+                        items: []
+                    };
+                }
+                marketGroups[marketId].items.push(item);
+            });
+
+            // Render route
+            const routeStops = Object.values(marketGroups);
+            renderRoute(routeStops);
+
+            // Calculate savings
+            calculateSavings();
+
+            // Show savings
+            document.getElementById('savingsSummary').classList.remove('hidden');
+        }
+
+        // Render Route
+        function renderRoute(stops) {
+            const container = document.getElementById('routeList');
+
+            container.innerHTML = stops.map((stop, index) => `
+                <div class="route-stop">
+                    <div class="route-number">${index + 1}</div>
+                    <div class="route-stop-details">
+                        <div class="route-stop-name">${stop.market.name}</div>
+                        <div class="route-stop-items">
+                            ${stop.items.map(item => `${item.product.icon} ${item.product.name}`).join(', ')}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Update distance (simplified calculation)
+            const distance = (stops.length * 4.5).toFixed(1);
+            const time = Math.round(stops.length * 12);
+
+            document.getElementById('totalDistance').textContent = distance + ' km';
+            document.getElementById('travelTime').textContent = time + ' min';
+        }
+
+        // Calculate Savings
+        function calculateSavings() {
+            // Calculate what it would cost at most expensive market
+            let optimizedCost = shoppingList.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+            let worstCaseCost = 0;
+            shoppingList.forEach(item => {
+                const prices = allPrices.filter(p => p.produce_id === item.produceId);
+                const maxPrice = Math.max(...prices.map(p => p.price));
+                worstCaseCost += maxPrice * item.quantity;
+            });
+
+            const savings = worstCaseCost - optimizedCost;
+            const savingsPercent = (savings / worstCaseCost * 100).toFixed(1);
+
+            document.getElementById('totalSavings').textContent = savings.toFixed(2);
+            document.getElementById('savingsPercent').textContent = savingsPercent;
+        }
+
+        // Save List
+        function saveList() {
+            localStorage.setItem('shoppingList', JSON.stringify(shoppingList));
+        }
+
+        // Load Saved List
+        function loadSavedList() {
+            const saved = localStorage.getItem('shoppingList');
+            if (saved) {
+                shoppingList = JSON.parse(saved);
+                renderList();
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', initList);
+    </script>
+</body>
+</html>
