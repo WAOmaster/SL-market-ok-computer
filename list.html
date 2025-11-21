@@ -3,911 +3,818 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shopping List Optimizer - Sri Lanka Market Prices</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Custom Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-    
-    <!-- Animation Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
-    
-    <!-- Leaflet for Maps -->
+    <meta name="description" content="Smart shopping list with route optimization">
+    <title>🛒 My Shopping List - SL Market Prices</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght:500;700&family=Noto+Sans+Sinhala:wght@400;500;700&family=Noto+Sans+Tamil:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Modern Theme CSS -->
+    <link rel="stylesheet" href="styles/modern-theme.css">
+
+    <!-- Leaflet CSS for Maps -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    
-    <!-- Custom Styles -->
+
     <style>
-        :root {
-            --forest-green: #2D5016;
-            --sage-green: #87A96B;
-            --warm-beige: #F5F1E8;
-            --deep-brown: #8B4513;
-            --harvest-gold: #DAA520;
-            --crimson-red: #DC143C;
-            --sky-blue: #87CEEB;
+        .list-container {
+            margin-top: var(--space-8);
         }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--warm-beige);
-            color: var(--deep-brown);
+
+        .budget-tracker {
+            background: var(--gradient-primary);
+            color: var(--text-inverse);
+            padding: var(--space-8);
+            border-radius: var(--border-radius-xl);
+            margin-bottom: var(--space-8);
         }
-        
-        .font-display {
-            font-family: 'Playfair Display', serif;
+
+        .budget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-4);
         }
-        
-        .font-mono {
-            font-family: 'JetBrains Mono', monospace;
+
+        .budget-amount {
+            font-family: var(--font-mono);
+            font-size: var(--text-2xl);
+            font-weight: var(--font-bold);
         }
-        
-        .nav-bar {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(45, 80, 22, 0.1);
-        }
-        
-        .shopping-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-        }
-        
-        .shopping-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-        }
-        
-        .list-item {
-            background: white;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 0.5rem;
-            border-left: 4px solid var(--sage-green);
-            transition: all 0.3s ease;
-        }
-        
-        .list-item:hover {
-            background: rgba(135, 169, 107, 0.05);
-        }
-        
-        .list-item.completed {
-            opacity: 0.6;
-            border-left-color: #ccc;
-        }
-        
+
         .budget-progress {
-            background: #e5e7eb;
-            border-radius: 10px;
-            height: 20px;
-            overflow: hidden;
-        }
-        
-        .budget-fill {
-            background: linear-gradient(90deg, var(--forest-green) 0%, var(--sage-green) 100%);
-            height: 100%;
-            transition: width 0.5s ease;
-            border-radius: 10px;
-        }
-        
-        .budget-exceeded {
-            background: linear-gradient(90deg, var(--crimson-red) 0%, #ff6b6b 100%);
-        }
-        
-        .route-step {
-            background: white;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 0.5rem;
-            border-left: 4px solid var(--harvest-gold);
-        }
-        
-        .savings-highlight {
-            background: linear-gradient(135deg, var(--harvest-gold) 0%, #f39c12 100%);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: bold;
-            display: inline-block;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--forest-green) 0%, var(--sage-green) 100%);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 25px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            border: none;
-            cursor: pointer;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(45, 80, 22, 0.3);
-        }
-        
-        .btn-secondary {
-            background: white;
-            color: var(--forest-green);
-            border: 2px solid var(--sage-green);
-            padding: 10px 20px;
-            border-radius: 25px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        
-        .btn-secondary:hover {
-            background: var(--sage-green);
-            color: white;
-        }
-        
-        .btn-danger {
-            background: white;
-            color: var(--crimson-red);
-            border: 2px solid var(--crimson-red);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        
-        .btn-danger:hover {
-            background: var(--crimson-red);
-            color: white;
-        }
-        
-        .map-container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-        
-        #map {
-            height: 400px;
             width: 100%;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: var(--border-radius-full);
+            overflow: hidden;
+            position: relative;
         }
-        
-        .animate-on-scroll {
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.6s ease;
+
+        .budget-fill {
+            height: 100%;
+            background: white;
+            transition: width var(--transition-slow);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: var(--space-3);
+            font-weight: var(--font-bold);
+            color: var(--color-primary);
         }
-        
-        .animate-on-scroll.visible {
-            opacity: 1;
-            transform: translateY(0);
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-8);
         }
-        
-        .drag-over {
-            border: 2px dashed var(--sage-green);
-            background: rgba(135, 169, 107, 0.1);
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
         }
-        
-        .quantity-input {
-            width: 60px;
-            padding: 4px 8px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
+
+        .list-section {
+            background: var(--bg-card);
+            padding: var(--space-6);
+            border-radius: var(--border-radius-xl);
+            box-shadow: var(--shadow-md);
+        }
+
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-6);
+        }
+
+        .add-item-form {
+            background: var(--stone-50);
+            padding: var(--space-4);
+            border-radius: var(--border-radius-lg);
+            margin-bottom: var(--space-6);
+        }
+
+        .shopping-items {
+            display: grid;
+            gap: var(--space-3);
+        }
+
+        .shopping-item {
+            background: white;
+            padding: var(--space-4);
+            border-radius: var(--border-radius-lg);
+            border: 2px solid var(--border-color);
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            gap: var(--space-3);
+            align-items: center;
+            transition: all var(--transition-fast);
+        }
+
+        .shopping-item:hover {
+            border-color: var(--color-primary);
+            box-shadow: var(--shadow-md);
+        }
+
+        .shopping-item.completed {
+            opacity: 0.6;
+        }
+
+        .shopping-item.completed .item-name {
+            text-decoration: line-through;
+        }
+
+        .item-checkbox {
+            width: 24px;
+            height: 24px;
+            accent-color: var(--color-primary);
+            cursor: pointer;
+        }
+
+        .item-icon {
+            font-size: 2rem;
+        }
+
+        .item-details {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: var(--font-semibold);
+            color: var(--text-primary);
+            margin-bottom: var(--space-1);
+        }
+
+        .item-info {
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+        }
+
+        .item-quantity {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .quantity-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--border-color);
+            background: white;
+            border-radius: var(--border-radius-md);
+            cursor: pointer;
+            font-weight: bold;
+            transition: all var(--transition-fast);
+        }
+
+        .quantity-btn:hover {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
+
+        .quantity-value {
+            font-family: var(--font-mono);
+            font-weight: var(--font-semibold);
+            min-width: 40px;
             text-align: center;
         }
-        
-        .quantity-input:focus {
-            outline: none;
-            border-color: var(--sage-green);
-            box-shadow: 0 0 0 2px rgba(135, 169, 107, 0.2);
+
+        .item-price {
+            font-family: var(--font-mono);
+            font-weight: var(--font-bold);
+            color: var(--color-primary);
+            text-align: right;
+        }
+
+        .item-remove {
+            background: none;
+            border: none;
+            color: var(--tomato-red);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: var(--space-2);
+            border-radius: var(--border-radius-md);
+            transition: all var(--transition-fast);
+        }
+
+        .item-remove:hover {
+            background: rgba(231, 76, 60, 0.1);
+        }
+
+        .map-section {
+            background: var(--bg-card);
+            padding: var(--space-6);
+            border-radius: var(--border-radius-xl);
+            box-shadow: var(--shadow-md);
+        }
+
+        #map {
+            width: 100%;
+            height: 400px;
+            border-radius: var(--border-radius-lg);
+            margin-bottom: var(--space-4);
+        }
+
+        .route-info {
+            background: var(--stone-50);
+            padding: var(--space-4);
+            border-radius: var(--border-radius-lg);
+        }
+
+        .route-list {
+            display: grid;
+            gap: var(--space-3);
+            margin-top: var(--space-4);
+        }
+
+        .route-stop {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-3);
+            background: white;
+            border-radius: var(--border-radius-md);
+        }
+
+        .route-number {
+            width: 32px;
+            height: 32px;
+            background: var(--color-primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .route-stop-details {
+            flex: 1;
+        }
+
+        .route-stop-name {
+            font-weight: var(--font-semibold);
+        }
+
+        .route-stop-items {
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+        }
+
+        .savings-summary {
+            background: var(--gradient-sunset);
+            color: var(--text-inverse);
+            padding: var(--space-6);
+            border-radius: var(--border-radius-xl);
+            margin-top: var(--space-8);
+            text-align: center;
+        }
+
+        .savings-amount {
+            font-family: var(--font-mono);
+            font-size: var(--text-3xl);
+            font-weight: var(--font-extrabold);
+            margin: var(--space-2) 0;
+        }
+
+        .empty-list {
+            text-align: center;
+            padding: var(--space-12);
+            color: var(--text-muted);
+        }
+
+        .empty-list-icon {
+            font-size: 4rem;
+            margin-bottom: var(--space-4);
         }
     </style>
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
     <!-- Navigation Bar -->
-    <nav class="nav-bar fixed top-0 left-0 right-0 z-50">
-        <div class="container mx-auto px-4">
-            <div class="flex justify-between items-center py-4">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-green-600 to-green-700 rounded-full flex items-center justify-center">
-                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h1 class="text-xl font-display font-bold text-gray-800">Market Prices</h1>
-                        <p class="text-sm text-gray-600">Sri Lanka</p>
-                    </div>
-                </div>
-                
-                <div class="hidden md:flex items-center space-x-6">
-                    <a href="index.html" class="nav-link text-gray-700 hover:text-green-600 font-medium">Dashboard</a>
-                    <a href="compare.html" class="nav-link text-gray-700 hover:text-green-600 font-medium">Compare</a>
-                    <a href="trends.html" class="nav-link text-gray-700 hover:text-green-600 font-medium">Trends</a>
-                    <a href="list.html" class="nav-link text-gray-700 hover:text-green-600 font-medium border-b-2 border-green-600">Shopping List</a>
-                </div>
-                
-                <div class="flex items-center space-x-3">
-                    <div class="relative">
-                        <button class="flex items-center space-x-2 text-gray-700 hover:text-green-600">
-                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
-                            </svg>
-                            <span id="shoppingListCount" class="bg-red-500 text-white text-xs rounded-full px-2 py-1">0</span>
-                        </button>
-                    </div>
-                    
-                    <button class="md:hidden text-gray-700">
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
+    <nav class="navbar" role="navigation" aria-label="Main navigation">
+        <div class="navbar-container">
+            <a href="index-new.html" class="navbar-brand">
+                <span class="navbar-brand-icon">🌾</span>
+                <span>SL Market Prices</span>
+            </a>
+
+            <button class="navbar-toggle" aria-label="Toggle navigation menu" id="navToggle">
+                ☰
+            </button>
+
+            <ul class="navbar-nav" id="navMenu">
+                <li><a href="index-new.html" class="navbar-link">Dashboard</a></li>
+                <li><a href="compare-new.html" class="navbar-link">Compare</a></li>
+                <li><a href="trends-new.html" class="navbar-link">Trends</a></li>
+                <li><a href="list-new.html" class="navbar-link active">My List</a></li>
+            </ul>
         </div>
     </nav>
 
-    <!-- Header Section -->
-    <section class="pt-24 pb-12 bg-gradient-to-br from-green-50 to-green-100">
-        <div class="container mx-auto px-4">
-            <div class="text-center mb-8">
-                <h1 class="text-4xl md:text-5xl font-display font-bold text-gray-800 mb-4">
-                    Smart Shopping List
-                </h1>
-                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-                    Optimize your shopping route, track your budget, and maximize savings
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">Smart Shopping List</h1>
+                <p class="hero-subtitle">
+                    Add items, track your budget, and get the <strong>optimal shopping route</strong>
                 </p>
             </div>
         </div>
     </section>
 
     <!-- Main Content -->
-    <main class="container mx-auto px-4 py-12">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Shopping List Builder -->
-            <div class="lg:col-span-2">
-                <div class="shopping-card p-6 mb-8 animate-on-scroll">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-2xl font-display font-bold text-gray-800">Shopping List</h2>
-                        <button class="btn-danger" onclick="clearShoppingList()">
-                            <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd"/>
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 012 0v4a1 1 0 11-2 0V7zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V7a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                            </svg>
-                            Clear All
-                        </button>
-                    </div>
-                    
-                    <!-- Add Item Form -->
-                    <div class="mb-6 p-4 bg-gray-50 rounded-lg">
-                        <div class="flex flex-col sm:flex-row gap-4">
-                            <input 
-                                type="text" 
-                                id="newItemInput"
-                                placeholder="Add item (e.g., tomatoes, carrots...)"
-                                class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                            >
-                            <input 
-                                type="number" 
-                                id="newItemQuantity"
-                                placeholder="Qty"
-                                min="1"
-                                value="1"
-                                class="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                            >
-                            <button class="btn-primary" onclick="addItemToList()">
-                                <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
-                                </svg>
-                                Add Item
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Shopping List Items -->
-                    <div id="shoppingListItems" class="min-h-48">
-                        <div class="text-center py-12 text-gray-500">
-                            <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
-                            </svg>
-                            <p>Your shopping list is empty</p>
-                            <p class="text-sm">Add items to start optimizing your shopping trip</p>
-                        </div>
+    <main id="main-content" class="container list-container">
+
+        <!-- Budget Tracker -->
+        <section class="budget-tracker animate-fade-in-up">
+            <div class="budget-header">
+                <div>
+                    <h3 style="font-size: var(--text-lg); margin-bottom: var(--space-2);">Budget Tracker</h3>
+                    <div class="budget-amount">
+                        ₨<span id="currentSpend">0</span> / ₨<span id="totalBudget">5000</span>
                     </div>
                 </div>
-                
-                <!-- Route Optimization -->
-                <div class="shopping-card p-6 animate-on-scroll">
-                    <h2 class="text-2xl font-display font-bold mb-6 text-gray-800">Optimized Shopping Route</h2>
-                    
-                    <div id="routeSteps" class="mb-6">
-                        <div class="text-center py-8 text-gray-500">
-                            <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
-                            </svg>
-                            <p>Add items to see optimized route</p>
-                        </div>
-                    </div>
-                    
-                    <div class="map-container">
-                        <div id="map"></div>
-                    </div>
+                <div style="text-align: right;">
+                    <div style="font-size: var(--text-sm); opacity: 0.9;">Remaining</div>
+                    <div class="budget-amount">₨<span id="remaining">5000</span></div>
                 </div>
             </div>
-            
-            <!-- Budget and Savings Sidebar -->
-            <div class="lg:col-span-1">
-                <!-- Budget Tracker -->
-                <div class="shopping-card p-6 mb-6 animate-on-scroll">
-                    <h3 class="text-xl font-display font-bold mb-4 text-gray-800">Budget Tracker</h3>
-                    
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Set Budget (Rs.)</label>
-                        <input 
-                            type="number" 
-                            id="budgetInput"
-                            placeholder="Enter your budget"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                            onchange="updateBudget()"
+            <div class="budget-progress">
+                <div class="budget-fill" id="budgetFill" style="width: 0%;">
+                    <span id="budgetPercent">0%</span>
+                </div>
+            </div>
+            <div style="margin-top: var(--space-4);">
+                <label style="font-size: var(--text-sm); opacity: 0.9; display: block; margin-bottom: var(--space-2);">
+                    Set Budget:
+                </label>
+                <input
+                    type="range"
+                    min="1000"
+                    max="20000"
+                    step="500"
+                    value="5000"
+                    class="form-input"
+                    id="budgetSlider"
+                    style="width: 100%;"
+                >
+            </div>
+        </section>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+
+            <!-- Shopping List Section -->
+            <section class="list-section">
+                <div class="list-header">
+                    <h2 class="section-title">🛒 Shopping List</h2>
+                    <button class="btn btn-ghost btn-sm" onclick="clearList()">Clear All</button>
+                </div>
+
+                <!-- Add Item Form -->
+                <div class="add-item-form">
+                    <div class="search-bar" style="margin-bottom: 0;">
+                        <span class="search-icon">+</span>
+                        <input
+                            type="search"
+                            class="search-input"
+                            placeholder="Add item to list..."
+                            id="addItemInput"
+                            autocomplete="off"
                         >
                     </div>
-                    
-                    <div class="mb-4">
-                        <div class="flex justify-between text-sm text-gray-600 mb-2">
-                            <span>Spent: <span id="totalSpent" class="font-mono">Rs. 0</span></span>
-                            <span>Budget: <span id="totalBudget" class="font-mono">Rs. 0</span></span>
-                        </div>
-                        <div class="budget-progress">
-                            <div id="budgetFill" class="budget-fill" style="width: 0%"></div>
-                        </div>
+                    <div id="addItemDropdown" class="autocomplete-dropdown hidden"></div>
+                </div>
+
+                <!-- Shopping Items -->
+                <div class="shopping-items" id="shoppingItems">
+                    <!-- Items will be inserted here -->
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyList" class="empty-list">
+                    <div class="empty-list-icon">🛒</div>
+                    <h3>Your list is empty</h3>
+                    <p>Add items above to start building your shopping list</p>
+                </div>
+
+                <!-- List Total -->
+                <div id="listTotal" class="hidden" style="margin-top: var(--space-6); padding-top: var(--space-6); border-top: 2px solid var(--border-color);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-family: var(--font-accent); font-size: var(--text-xl); font-weight: bold;">
+                            Total (<span id="itemCount">0</span> items)
+                        </span>
+                        <span style="font-family: var(--font-mono); font-size: var(--text-2xl); font-weight: bold; color: var(--color-primary);">
+                            ₨<span id="totalPrice">0</span>
+                        </span>
                     </div>
-                    
-                    <div class="text-center p-4 bg-green-50 rounded-lg">
-                        <div class="savings-highlight mb-2">
-                            <span id="totalSavings">Rs. 0</span>
+                    <button class="btn btn-primary" style="width: 100%; margin-top: var(--space-4);" onclick="optimizeRoute()">
+                        🗺️ Optimize Shopping Route
+                    </button>
+                </div>
+            </section>
+
+            <!-- Map & Route Section -->
+            <section class="map-section">
+                <h2 class="section-title" style="margin-bottom: var(--space-4);">🗺️ Optimized Route</h2>
+
+                <!-- Map -->
+                <div id="map"></div>
+
+                <!-- Route Information -->
+                <div class="route-info" id="routeInfo">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
+                        <h3 style="font-family: var(--font-accent); font-weight: bold;">Route Summary</h3>
+                        <span class="badge badge-primary">3 Stops</span>
+                    </div>
+
+                    <div class="route-list" id="routeList">
+                        <!-- Route stops will be inserted here -->
+                    </div>
+
+                    <div style="margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-between; font-size: var(--text-sm); color: var(--text-secondary);">
+                            <span>Total Distance:</span>
+                            <strong id="totalDistance">12.5 km</strong>
                         </div>
-                        <p class="text-sm text-gray-600">Estimated Savings</p>
+                        <div style="display: flex; justify-content: space-between; font-size: var(--text-sm); color: var(--text-secondary); margin-top: var(--space-2);">
+                            <span>Est. Travel Time:</span>
+                            <strong id="travelTime">35 min</strong>
+                        </div>
                     </div>
                 </div>
-                
-                <!-- Market Recommendations -->
-                <div class="shopping-card p-6 mb-6 animate-on-scroll">
-                    <h3 class="text-xl font-display font-bold mb-4 text-gray-800">Best Markets</h3>
-                    
-                    <div id="marketRecommendations">
-                        <div class="text-center py-6 text-gray-500">
-                            <p class="text-sm">Add items to see market recommendations</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Quick Actions -->
-                <div class="shopping-card p-6 animate-on-scroll">
-                    <h3 class="text-xl font-display font-bold mb-4 text-gray-800">Quick Actions</h3>
-                    
-                    <div class="space-y-3">
-                        <button class="w-full btn-secondary" onclick="optimizeRoute()">
-                            <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
-                            </svg>
-                            Optimize Route
-                        </button>
-                        
-                        <button class="w-full btn-secondary" onclick="shareList()">
-                            <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z"/>
-                            </svg>
-                            Share List
-                        </button>
-                        
-                        <button class="w-full btn-secondary" onclick="saveList()">
-                            <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 12.586V5a1 1 0 10-2 0v7.586l-1.293-1.293z"/>
-                            </svg>
-                            Save List
-                        </button>
-                    </div>
-                </div>
-            </div>
+            </section>
+
         </div>
+
+        <!-- Savings Summary -->
+        <section id="savingsSummary" class="savings-summary hidden">
+            <div style="font-size: 1.5rem;">💰</div>
+            <h2 style="font-size: var(--text-2xl); margin: var(--space-2) 0;">Smart Shopping Savings</h2>
+            <p style="opacity: 0.9; margin-bottom: var(--space-2);">
+                By shopping at the best markets for each item, you save:
+            </p>
+            <div class="savings-amount">₨<span id="totalSavings">0</span></div>
+            <p style="font-size: var(--text-sm); opacity: 0.9;">
+                That's <strong><span id="savingsPercent">0</span>%</strong> compared to buying everything at one market!
+            </p>
+        </section>
+
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-12 mt-16">
-        <div class="container mx-auto px-4 text-center">
-            <div class="mb-6">
-                <h3 class="text-2xl font-display font-bold mb-2">Sri Lanka Market Prices</h3>
-                <p class="text-gray-400">Your trusted source for local produce prices</p>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-                <div>
-                    <h4 class="font-semibold mb-2">Markets Covered</h4>
-                    <p class="text-gray-400 text-sm">Colombo, Kandy, Galle, Nuwara Eliya, Dambulla, Embilipitiya, Kurunegala, Matara</p>
-                </div>
-                <div>
-                    <h4 class="font-semibold mb-2">Products</h4>
-                    <p class="text-gray-400 text-sm">Vegetables, Fruits, Spices, and other local produce</p>
-                </div>
-                <div>
-                    <h4 class="font-semibold mb-2">Data Sources</h4>
-                    <p class="text-gray-400 text-sm">HARTI, Local Market Reports, Real-time Updates</p>
-                </div>
-            </div>
-            
-            <div class="border-t border-gray-700 pt-6">
-                <p class="text-gray-400 text-sm">
-                    © 2024 Sri Lanka Market Prices. Data provided for informational purposes.
-                </p>
-            </div>
+    <footer style="background: var(--stone-100); padding: var(--space-8) 0; margin-top: var(--space-16); text-align: center;">
+        <div class="container">
+            <p style="color: var(--text-secondary);">
+                🌾 Sri Lanka Market Prices • Real-time produce pricing across Sri Lanka
+            </p>
         </div>
     </footer>
 
-    <!-- JavaScript -->
-    <script src="main.js"></script>
-    
+    <!-- Scripts -->
+    <script src="js/demo-data.js"></script>
     <script>
-        // Shopping list page specific functionality
-        let map;
-        let currentBudget = 0;
-        let totalSpent = 0;
-        
-        // Initialize page
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeMap();
-            loadShoppingList();
-            setupDragAndDrop();
-            
-            // Set up scroll animations
-            const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            };
-            
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                    }
-                });
-            }, observerOptions);
-            
-            document.querySelectorAll('.animate-on-scroll').forEach(el => {
-                observer.observe(el);
-            });
-        });
-        
-        function initializeMap() {
-            // Initialize Leaflet map centered on Sri Lanka
-            map = L.map('map').setView([7.8731, 80.7718], 7);
-            
+        // Shopping List State
+        let shoppingList = [];
+        let budget = 5000;
+        let map = null;
+        let markers = [];
+
+        // Initialize
+        function initList() {
+            initMap();
+            attachEventListeners();
+            loadSavedList();
+            updateBudget();
+        }
+
+        // Initialize Map
+        function initMap() {
+            // Center on Colombo
+            map = L.map('map').setView([6.9271, 79.8612], 11);
+
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors'
             }).addTo(map);
-            
+
             // Add market markers
-            const markets = {
-                'Colombo': [6.9271, 79.8612],
-                'Kandy': [7.2906, 80.6337],
-                'Galle': [6.0535, 80.2200],
-                'Nuwara Eliya': [6.9497, 80.7891],
-                'Dambulla': [7.8600, 80.6500],
-                'Embilipitiya': [6.3333, 80.8500],
-                'Kurunegala': [7.4833, 80.3667],
-                'Matara': [5.9483, 80.5353]
-            };
-            
-            Object.keys(markets).forEach(market => {
-                const [lat, lng] = markets[market];
-                L.marker([lat, lng])
-                    .addTo(map)
-                    .bindPopup(`<b>${market} Market</b><br>Click to add to route`);
+            DEMO_DATA.markets.forEach(market => {
+                const marker = L.marker([market.latitude, market.longitude])
+                    .bindPopup(`<strong>${market.name}</strong><br>${market.location}`)
+                    .addTo(map);
+                markers.push(marker);
             });
         }
-        
-        function addItemToList() {
-            const input = document.getElementById('newItemInput');
-            const quantityInput = document.getElementById('newItemQuantity');
-            const itemName = input.value.trim();
-            const quantity = parseInt(quantityInput.value) || 1;
-            
-            if (!itemName) {
-                showNotification('Please enter an item name');
-                return;
-            }
-            
-            // Find item in market data or create new
-            let item = findItemByName(itemName);
-            if (!item) {
-                item = {
-                    id: itemName.toLowerCase().replace(/\s+/g, '-'),
-                    name: itemName,
-                    price: Math.round(Math.random() * 200) + 50, // Random price for demo
-                    quantity: quantity,
-                    markets: ['Colombo', 'Kandy', 'Galle']
-                };
-            } else {
-                item.quantity = quantity;
-            }
-            
-            // Add to shopping list
-            addToShoppingList(item.id);
-            
-            // Clear inputs
-            input.value = '';
-            quantityInput.value = '1';
-            
-            // Update display
-            updateShoppingListDisplay();
-            updateBudgetTracker();
-            generateRouteOptimization();
-            
-            showNotification(`${itemName} added to shopping list`);
-        }
-        
-        function findItemByName(name) {
-            const searchTerm = name.toLowerCase();
-            for (const category in marketData) {
-                const found = marketData[category].find(item => 
-                    item.name.toLowerCase().includes(searchTerm) ||
-                    item.sinhala.toLowerCase().includes(searchTerm)
+
+        // Attach Event Listeners
+        function attachEventListeners() {
+            const addInput = document.getElementById('addItemInput');
+            const dropdown = document.getElementById('addItemDropdown');
+
+            // Search autocomplete
+            addInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+
+                if (query.length < 2) {
+                    dropdown.classList.add('hidden');
+                    return;
+                }
+
+                const matches = DEMO_DATA.produce.filter(p =>
+                    p.name.toLowerCase().includes(query) ||
+                    p.name_sinhala.includes(query) ||
+                    p.name_tamil.includes(query)
                 );
-                if (found) return found;
-            }
-            return null;
+
+                if (matches.length > 0) {
+                    renderAddItemDropdown(matches);
+                    dropdown.classList.remove('hidden');
+                } else {
+                    dropdown.classList.add('hidden');
+                }
+            });
+
+            // Budget slider
+            document.getElementById('budgetSlider').addEventListener('input', (e) => {
+                budget = parseInt(e.target.value);
+                updateBudget();
+            });
+
+            // Close dropdown
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.add-item-form')) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+
+            // Mobile nav
+            document.getElementById('navToggle').addEventListener('click', () => {
+                document.getElementById('navMenu').classList.toggle('hidden');
+            });
         }
-        
-        function updateShoppingListDisplay() {
-            const container = document.getElementById('shoppingListItems');
-            const countElement = document.getElementById('shoppingListCount');
-            
-            if (countElement) {
-                countElement.textContent = shoppingList.length;
+
+        // Render Add Item Dropdown
+        function renderAddItemDropdown(products) {
+            const dropdown = document.getElementById('addItemDropdown');
+
+            dropdown.innerHTML = products.slice(0, 6).map(product => {
+                const price = allPrices.find(p => p.produce_id === product.id);
+                return `
+                    <div class="autocomplete-item" onclick="addToList(${product.id})">
+                        <span class="icon">${product.icon}</span>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600;">${product.name}</div>
+                            <div style="font-size: var(--text-sm); color: var(--text-secondary);">
+                                ${product.name_sinhala}
+                            </div>
+                        </div>
+                        <div style="font-family: var(--font-mono); font-weight: bold; color: var(--color-primary);">
+                            ₨${price ? price.price : '-'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Add to List
+        function addToList(produceId) {
+            // Check if already in list
+            if (shoppingList.find(item => item.produceId === produceId)) {
+                return;
             }
-            
-            if (container && shoppingList.length > 0) {
+
+            const product = DEMO_DATA.produce.find(p => p.id === produceId);
+            const bestPrice = getBestPriceForProduct(produceId);
+
+            shoppingList.push({
+                produceId: produceId,
+                product: product,
+                quantity: 1,
+                price: bestPrice.price,
+                market: bestPrice.market,
+                completed: false
+            });
+
+            renderList();
+            updateBudget();
+            saveList();
+
+            // Clear input
+            document.getElementById('addItemInput').value = '';
+            document.getElementById('addItemDropdown').classList.add('hidden');
+        }
+
+        // Get Best Price for Product
+        function getBestPriceForProduct(produceId) {
+            const prices = allPrices.filter(p => p.produce_id === produceId);
+            return prices.reduce((best, current) =>
+                current.price < best.price ? current : best
+            );
+        }
+
+        // Render List
+        function renderList() {
+            const container = document.getElementById('shoppingItems');
+            const emptyState = document.getElementById('emptyList');
+            const totalSection = document.getElementById('listTotal');
+
+            if (shoppingList.length === 0) {
                 container.innerHTML = '';
-                
-                shoppingList.forEach((item, index) => {
-                    const listItem = document.createElement('div');
-                    listItem.className = 'list-item';
-                    listItem.innerHTML = `
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-4">
-                                <input 
-                                    type="checkbox" 
-                                    class="w-5 h-5 text-green-600 rounded"
-                                    ${item.completed ? 'checked' : ''}
-                                    onchange="toggleItemCompletion(${index})"
-                                >
-                                <div>
-                                    <h4 class="font-medium ${item.completed ? 'line-through text-gray-500' : ''}">${item.name}</h4>
-                                    <p class="text-sm text-gray-600">Available in: ${item.markets ? item.markets.join(', ') : 'Multiple markets'}</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center space-x-3">
-                                <div class="text-right">
-                                    <div class="font-mono font-bold text-gray-800">Rs. ${item.price}/${item.unit || 'kg'}</div>
-                                    <div class="text-sm text-gray-600">Qty: 
-                                        <input 
-                                            type="number" 
-                                            value="${item.quantity}" 
-                                            min="1" 
-                                            max="20"
-                                            class="quantity-input"
-                                            onchange="updateItemQuantity(${index}, this.value)"
-                                        >
-                                    </div>
-                                </div>
-                                <button 
-                                    onclick="removeFromShoppingList('${item.id}')"
-                                    class="text-red-500 hover:text-red-700 p-2"
-                                >
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                                    </svg>
-                                </button>
-                            </div>
+                emptyState.classList.remove('hidden');
+                totalSection.classList.add('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            totalSection.classList.remove('hidden');
+
+            container.innerHTML = shoppingList.map((item, index) => `
+                <div class="shopping-item ${item.completed ? 'completed' : ''} stagger-item" style="animation-delay: ${index * 0.05}s;">
+                    <input
+                        type="checkbox"
+                        class="item-checkbox"
+                        ${item.completed ? 'checked' : ''}
+                        onchange="toggleComplete(${index})"
+                    >
+                    <div class="item-icon">${item.product.icon}</div>
+                    <div class="item-details">
+                        <div class="item-name">${item.product.name}</div>
+                        <div class="item-info">
+                            📍 Best at ${item.market.name} • ${item.product.unit}
                         </div>
-                    `;
-                    container.appendChild(listItem);
-                });
-            }
+                    </div>
+                    <div class="item-quantity">
+                        <button class="quantity-btn" onclick="updateQuantity(${index}, -1)">−</button>
+                        <span class="quantity-value">${item.quantity}</span>
+                        <button class="quantity-btn" onclick="updateQuantity(${index}, 1)">+</button>
+                    </div>
+                    <div class="item-price">₨${(item.price * item.quantity).toFixed(2)}</div>
+                    <button class="item-remove" onclick="removeFromList(${index})" aria-label="Remove item">×</button>
+                </div>
+            `).join('');
+
+            updateTotals();
         }
-        
-        function updateItemQuantity(index, quantity) {
-            if (shoppingList[index]) {
-                shoppingList[index].quantity = parseInt(quantity);
-                saveShoppingList();
-                updateBudgetTracker();
-                generateRouteOptimization();
-            }
+
+        // Toggle Complete
+        function toggleComplete(index) {
+            shoppingList[index].completed = !shoppingList[index].completed;
+            renderList();
+            saveList();
         }
-        
-        function toggleItemCompletion(index) {
-            if (shoppingList[index]) {
-                shoppingList[index].completed = !shoppingList[index].completed;
-                saveShoppingList();
-                updateShoppingListDisplay();
-            }
+
+        // Update Quantity
+        function updateQuantity(index, change) {
+            shoppingList[index].quantity = Math.max(1, shoppingList[index].quantity + change);
+            renderList();
+            updateBudget();
+            saveList();
         }
-        
-        function clearShoppingList() {
-            if (confirm('Are you sure you want to clear your shopping list?')) {
+
+        // Remove from List
+        function removeFromList(index) {
+            shoppingList.splice(index, 1);
+            renderList();
+            updateBudget();
+            saveList();
+        }
+
+        // Clear List
+        function clearList() {
+            if (confirm('Clear all items from your shopping list?')) {
                 shoppingList = [];
-                saveShoppingList();
-                updateShoppingListDisplay();
-                updateBudgetTracker();
-                generateRouteOptimization();
-                showNotification('Shopping list cleared');
+                renderList();
+                updateBudget();
+                saveList();
             }
         }
-        
+
+        // Update Totals
+        function updateTotals() {
+            const total = shoppingList.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const itemCount = shoppingList.length;
+
+            document.getElementById('totalPrice').textContent = total.toFixed(2);
+            document.getElementById('itemCount').textContent = itemCount;
+        }
+
+        // Update Budget
         function updateBudget() {
-            const budgetInput = document.getElementById('budgetInput');
-            currentBudget = parseFloat(budgetInput.value) || 0;
-            document.getElementById('totalBudget').textContent = `Rs. ${currentBudget}`;
-            updateBudgetTracker();
-        }
-        
-        function updateBudgetTracker() {
-            totalSpent = shoppingList.reduce((total, item) => {
-                return total + (item.price * item.quantity);
-            }, 0);
-            
-            document.getElementById('totalSpent').textContent = `Rs. ${totalSpent}`;
-            
-            const budgetFill = document.getElementById('budgetFill');
-            const percentage = currentBudget > 0 ? (totalSpent / currentBudget) * 100 : 0;
-            
-            budgetFill.style.width = `${Math.min(percentage, 100)}%`;
-            
-            if (percentage > 100) {
-                budgetFill.classList.add('budget-exceeded');
+            const currentSpend = shoppingList.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const remaining = budget - currentSpend;
+            const percent = (currentSpend / budget * 100).toFixed(0);
+
+            document.getElementById('totalBudget').textContent = budget;
+            document.getElementById('currentSpend').textContent = currentSpend.toFixed(2);
+            document.getElementById('remaining').textContent = Math.max(0, remaining).toFixed(2);
+            document.getElementById('budgetPercent').textContent = Math.min(percent, 100) + '%';
+            document.getElementById('budgetFill').style.width = Math.min(percent, 100) + '%';
+
+            // Change color if over budget
+            const fillElement = document.getElementById('budgetFill');
+            if (currentSpend > budget) {
+                fillElement.style.background = '#E74C3C';
             } else {
-                budgetFill.classList.remove('budget-exceeded');
+                fillElement.style.background = 'white';
             }
-            
-            // Calculate and display savings
-            const savings = Math.round(totalSpent * 0.15); // Assume 15% savings through optimization
-            document.getElementById('totalSavings').textContent = `Rs. ${savings}`;
-            
-            updateMarketRecommendations();
         }
-        
-        function updateMarketRecommendations() {
-            const container = document.getElementById('marketRecommendations');
-            
-            if (shoppingList.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-6 text-gray-500">
-                        <p class="text-sm">Add items to see market recommendations</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            // Group items by best market (simplified logic)
- const marketItems = {};
-            shoppingList.forEach(item => {
-                if (item.markets && item.markets.length > 0) {
-                    const bestMarket = item.markets[0]; // Simplified: first available market
-                    if (!marketItems[bestMarket]) {
-                        marketItems[bestMarket] = [];
-                    }
-                    marketItems[bestMarket].push(item);
-                }
-            });
-            
-            let html = '';
-            Object.keys(marketItems).forEach(market => {
-                const items = marketItems[market];
-                const marketTotal = items.reduce((total, item) => total + (item.price * item.quantity), 0);
-                
-                html += `
-                    <div class="mb-4 p-3 bg-green-50 rounded-lg">
-                        <h4 class="font-semibold text-green-800 mb-2">${market}</h4>
-                        <p class="text-sm text-green-600 mb-2">${items.length} items</p>
-                        <p class="font-mono text-green-800">Rs. ${marketTotal}</p>
-                        <div class="text-xs text-green-600 mt-1">
-                            ${items.slice(0, 3).map(item => item.name).join(', ')}
-                            ${items.length > 3 ? ` +${items.length - 3} more` : ''}
-                        </div>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = html;
-        }
-        
-        function generateRouteOptimization() {
-            const container = document.getElementById('routeSteps');
-            
-            if (shoppingList.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-8 text-gray-500">
-                        <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
-                        </svg>
-                        <p>Add items to see optimized route</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            // Generate optimized route based on market locations
-            const marketItems = {};
-            shoppingList.forEach(item => {
-                if (item.markets && item.markets.length > 0) {
-                    const bestMarket = item.markets[0];
-                    if (!marketItems[bestMarket]) {
-                        marketItems[bestMarket] = [];
-                    }
-                    marketItems[bestMarket].push(item);
-                }
-            });
-            
-            let html = '';
-            let stepNumber = 1;
-            
-            Object.keys(marketItems).forEach(market => {
-                const items = marketItems[market];
-                const marketTotal = items.reduce((total, item) => total + (item.price * item.quantity), 0);
-                
-                html += `
-                    <div class="route-step">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 bg-yellow-500 text-white rounded-full flex items-center justify-center font-bold text-sm">
-                                    ${stepNumber++}
-                                </div>
-                                <div>
-                                    <h4 class="font-semibold text-gray-800">${market} Market</h4>
-                                    <p class="text-sm text-gray-600">${items.length} items • Rs. ${marketTotal}</p>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-sm text-gray-500">Estimated time</div>
-                                <div class="font-medium">${Math.floor(Math.random() * 30) + 15} min</div>
-                            </div>
-                        </div>
-                        <div class="mt-3 text-sm text-gray-600">
-                            Items: ${items.map(item => `${item.name} (${item.quantity})`).join(', ')}
-                        </div>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = html;
-            
-            // Update map with route
-            updateMapRoute(Object.keys(marketItems));
-        }
-        
-        function updateMapRoute(markets) {
-            // Clear existing route
-            map.eachLayer(layer => {
-                if (layer instanceof L.Polyline) {
-                    map.removeLayer(layer);
-                }
-            });
-            
-            if (markets.length < 2) return;
-            
-            // Create route coordinates
-            const coordinates = markets.map(market => {
-                const coords = {
-                    'Colombo': [6.9271, 79.8612],
-                    'Kandy': [7.2906, 80.6337],
-                    'Galle': [6.0535, 80.2200],
-                    'Nuwara Eliya': [6.9497, 80.7891],
-                    'Dambulla': [7.8600, 80.6500],
-                    'Embilipitiya': [6.3333, 80.8500],
-                    'Kurunegala': [7.4833, 80.3667],
-                    'Matara': [5.9483, 80.5353]
-                };
-                return coords[market] || [7.8731, 80.7718];
-            });
-            
-            // Draw route line
-            const routeLine = L.polyline(coordinates, {
-                color: '#2D5016',
-                weight: 4,
-                opacity: 0.7,
-                dashArray: '10, 5'
-            }).addTo(map);
-            
-            // Fit map to route
-            map.fitBounds(routeLine.getBounds(), { padding: [20, 20] });
-        }
-        
+
+        // Optimize Route
         function optimizeRoute() {
-            if (shoppingList.length === 0) {
-                showNotification('Add items to optimize route');
-                return;
-            }
-            
-            showNotification('Route optimized for maximum savings!');
-            generateRouteOptimization();
+            if (shoppingList.length === 0) return;
+
+            // Group items by market
+            const marketGroups = {};
+
+            shoppingList.forEach(item => {
+                const marketId = item.market.id;
+                if (!marketGroups[marketId]) {
+                    marketGroups[marketId] = {
+                        market: item.market,
+                        items: []
+                    };
+                }
+                marketGroups[marketId].items.push(item);
+            });
+
+            // Render route
+            const routeStops = Object.values(marketGroups);
+            renderRoute(routeStops);
+
+            // Calculate savings
+            calculateSavings();
+
+            // Show savings
+            document.getElementById('savingsSummary').classList.remove('hidden');
         }
-        
-        function shareList() {
-            if (shoppingList.length === 0) {
-                showNotification('Add items to share list');
-                return;
-            }
-            
-            const listText = shoppingList.map(item => 
-                `${item.name} (${item.quantity}) - Rs. ${item.price}`
-            ).join('\n');
-            
-            if (navigator.share) {
-                navigator.share({
-                    title: 'My Shopping List',
-                    text: listText
-                });
-            } else {
-                // Fallback: copy to clipboard
-                navigator.clipboard.writeText(listText).then(() => {
-                    showNotification('Shopping list copied to clipboard!');
-                });
-            }
+
+        // Render Route
+        function renderRoute(stops) {
+            const container = document.getElementById('routeList');
+
+            container.innerHTML = stops.map((stop, index) => `
+                <div class="route-stop">
+                    <div class="route-number">${index + 1}</div>
+                    <div class="route-stop-details">
+                        <div class="route-stop-name">${stop.market.name}</div>
+                        <div class="route-stop-items">
+                            ${stop.items.map(item => `${item.product.icon} ${item.product.name}`).join(', ')}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Update distance (simplified calculation)
+            const distance = (stops.length * 4.5).toFixed(1);
+            const time = Math.round(stops.length * 12);
+
+            document.getElementById('totalDistance').textContent = distance + ' km';
+            document.getElementById('travelTime').textContent = time + ' min';
         }
-        
+
+        // Calculate Savings
+        function calculateSavings() {
+            // Calculate what it would cost at most expensive market
+            let optimizedCost = shoppingList.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+            let worstCaseCost = 0;
+            shoppingList.forEach(item => {
+                const prices = allPrices.filter(p => p.produce_id === item.produceId);
+                const maxPrice = Math.max(...prices.map(p => p.price));
+                worstCaseCost += maxPrice * item.quantity;
+            });
+
+            const savings = worstCaseCost - optimizedCost;
+            const savingsPercent = (savings / worstCaseCost * 100).toFixed(1);
+
+            document.getElementById('totalSavings').textContent = savings.toFixed(2);
+            document.getElementById('savingsPercent').textContent = savingsPercent;
+        }
+
+        // Save List
         function saveList() {
-            if (shoppingList.length === 0) {
-                showNotification('Add items to save list');
-                return;
-            }
-            
-            localStorage.setItem('savedShoppingList', JSON.stringify(shoppingList));
-            showNotification('Shopping list saved!');
+            localStorage.setItem('shoppingList', JSON.stringify(shoppingList));
         }
-        
-        function loadShoppingList() {
-            const saved = localStorage.getItem('savedShoppingList');
+
+        // Load Saved List
+        function loadSavedList() {
+            const saved = localStorage.getItem('shoppingList');
             if (saved) {
                 shoppingList = JSON.parse(saved);
-                updateShoppingListDisplay();
-                updateBudgetTracker();
-                generateRouteOptimization();
+                renderList();
             }
         }
-        
-        function setupDragAndDrop() {
-            const container = document.getElementById('shoppingListItems');
-            
-            container.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                container.classList.add('drag-over');
-            });
-            
-            container.addEventListener('dragleave', function() {
-                container.classList.remove('drag-over');
-            });
-            
-            container.addEventListener('drop', function(e) {
-                e.preventDefault();
-                container.classList.remove('drag-over');
-                // Handle dropped items if needed
-            });
-        }
-        
-        // Handle Enter key in input fields
-        document.getElementById('newItemInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                addItemToList();
-            }
-        });
-        
-        document.getElementById('budgetInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                updateBudget();
-            }
-        });
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', initList);
     </script>
 </body>
 </html>
