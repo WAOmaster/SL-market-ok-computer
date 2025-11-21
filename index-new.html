@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Real-time market prices for fresh produce across Sri Lanka">
+    <title>🌾 Sri Lanka Market Prices - Today's Fresh Deals</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@500;700&family=Noto+Sans+Sinhala:wght@400;500;700&family=Noto+Sans+Tamil:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Modern Theme CSS -->
+    <link rel="stylesheet" href="styles/modern-theme.css">
+
+    <style>
+        /* Additional Dashboard Styles */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-6);
+            margin: var(--space-8) 0;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            padding: var(--space-6);
+            border-radius: var(--border-radius-xl);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition-normal);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: var(--space-3);
+        }
+
+        .stat-value {
+            font-family: var(--font-mono);
+            font-size: var(--text-3xl);
+            font-weight: var(--font-bold);
+            color: var(--color-primary);
+            margin-bottom: var(--space-2);
+        }
+
+        .stat-label {
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            font-weight: var(--font-medium);
+        }
+
+        .dashboard-section {
+            margin: var(--space-12) 0;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-6);
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: var(--text-2xl);
+            font-weight: var(--font-bold);
+            color: var(--color-primary);
+        }
+
+        .price-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--space-6);
+        }
+
+        .filter-sidebar {
+            background: var(--bg-card);
+            padding: var(--space-6);
+            border-radius: var(--border-radius-xl);
+            border: 1px solid var(--border-color);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .filter-group {
+            margin-bottom: var(--space-6);
+        }
+
+        .filter-title {
+            font-family: var(--font-accent);
+            font-size: var(--text-lg);
+            font-weight: var(--font-semibold);
+            color: var(--text-primary);
+            margin-bottom: var(--space-4);
+        }
+
+        .filter-option {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-2) 0;
+            cursor: pointer;
+            transition: color var(--transition-fast);
+        }
+
+        .filter-option:hover {
+            color: var(--color-primary);
+        }
+
+        .filter-option input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--color-primary);
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: var(--space-8);
+            margin-top: var(--space-8);
+        }
+
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-sidebar {
+                position: static;
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: var(--space-16);
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: var(--space-4);
+        }
+
+        /* Loading Skeleton */
+        .skeleton-card {
+            background: var(--bg-card);
+            border-radius: var(--border-radius-xl);
+            overflow: hidden;
+        }
+
+        .skeleton-img {
+            height: 200px;
+            background: var(--stone-100);
+        }
+
+        .skeleton-content {
+            padding: var(--space-4);
+        }
+
+        .skeleton-text {
+            height: 16px;
+            background: var(--stone-100);
+            border-radius: var(--border-radius-md);
+            margin-bottom: var(--space-2);
+        }
+
+        .skeleton-text.large {
+            height: 32px;
+            width: 70%;
+        }
+    </style>
+</head>
+<body>
+    <!-- Skip Link for Accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar" role="navigation" aria-label="Main navigation">
+        <div class="navbar-container">
+            <a href="index-new.html" class="navbar-brand">
+                <span class="navbar-brand-icon">🌾</span>
+                <span>SL Market Prices</span>
+            </a>
+
+            <button class="navbar-toggle" aria-label="Toggle navigation menu" id="navToggle">
+                ☰
+            </button>
+
+            <ul class="navbar-nav" id="navMenu">
+                <li><a href="index-new.html" class="navbar-link active">Dashboard</a></li>
+                <li><a href="compare-new.html" class="navbar-link">Compare</a></li>
+                <li><a href="trends-new.html" class="navbar-link">Trends</a></li>
+                <li><a href="list-new.html" class="navbar-link">My List</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" role="banner">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">Today's Fresh Market Prices</h1>
+                <p class="hero-subtitle">
+                    Compare prices across <strong id="marketCount">5</strong> markets •
+                    <strong id="produceCount">22</strong> fresh items •
+                    Updated <strong>just now</strong>
+                </p>
+
+                <!-- Hero Search Bar -->
+                <div class="hero-search">
+                    <div class="search-bar">
+                        <span class="search-icon">🔍</span>
+                        <input
+                            type="search"
+                            class="search-input"
+                            placeholder="Search for tomatoes, onions, rice..."
+                            aria-label="Search for produce"
+                            id="heroSearch"
+                        >
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main id="main-content" class="container">
+
+        <!-- Quick Stats -->
+        <section class="stats-grid stagger-container" aria-label="Market statistics">
+            <div class="stat-card stagger-item">
+                <div class="stat-icon">📊</div>
+                <div class="stat-value" id="statMarkets">5</div>
+                <div class="stat-label">Active Markets</div>
+            </div>
+
+            <div class="stat-card stagger-item">
+                <div class="stat-icon">📈</div>
+                <div class="stat-value" id="statTrending">12</div>
+                <div class="stat-label">Price Increases</div>
+            </div>
+
+            <div class="stat-card stagger-item">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-value" id="statDeals">8</div>
+                <div class="stat-label">Best Deals</div>
+            </div>
+
+            <div class="stat-card stagger-item">
+                <div class="stat-icon">⭐</div>
+                <div class="stat-value" id="statPopular">6</div>
+                <div class="stat-label">Popular Items</div>
+            </div>
+        </section>
+
+        <!-- Best Deals Section -->
+        <section class="dashboard-section" aria-labelledby="best-deals-title">
+            <div class="section-header">
+                <h2 class="section-title" id="best-deals-title">🔥 Best Deals Today</h2>
+                <a href="#" class="btn btn-ghost">View All</a>
+            </div>
+            <div class="price-grid" id="bestDealsGrid">
+                <!-- Best deals will be inserted here -->
+            </div>
+        </section>
+
+        <!-- Main Price Dashboard -->
+        <div class="main-layout">
+
+            <!-- Filter Sidebar -->
+            <aside class="filter-sidebar" aria-label="Price filters">
+                <div class="filter-group">
+                    <h3 class="filter-title">Categories</h3>
+                    <div id="categoryFilters">
+                        <!-- Category checkboxes will be inserted here -->
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <h3 class="filter-title">Markets</h3>
+                    <div id="marketFilters">
+                        <!-- Market checkboxes will be inserted here -->
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <h3 class="filter-title">Price Range</h3>
+                    <div style="padding: var(--space-2) 0;">
+                        <input
+                            type="range"
+                            min="0"
+                            max="5000"
+                            value="5000"
+                            class="form-input"
+                            id="priceRange"
+                            aria-label="Maximum price filter"
+                        >
+                        <div style="text-align: center; margin-top: var(--space-2); font-family: var(--font-mono);">
+                            ₨<span id="priceRangeValue">5000</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-secondary" style="width: 100%;" id="clearFilters">
+                    Clear Filters
+                </button>
+            </aside>
+
+            <!-- Price Grid -->
+            <section aria-labelledby="all-prices-title">
+                <div class="section-header">
+                    <h2 class="section-title" id="all-prices-title">All Prices</h2>
+                    <div class="flex gap-2">
+                        <button class="btn btn-sm btn-ghost" id="sortPrice">Sort by Price</button>
+                        <button class="btn btn-sm btn-ghost" id="sortName">Sort by Name</button>
+                    </div>
+                </div>
+                <div class="price-grid" id="allPricesGrid">
+                    <!-- All prices will be inserted here -->
+                </div>
+
+                <!-- Loading State -->
+                <div id="loadingState" class="hidden">
+                    <div class="price-grid">
+                        <!-- Skeleton cards -->
+                        <div class="skeleton-card">
+                            <div class="skeleton-img skeleton"></div>
+                            <div class="skeleton-content">
+                                <div class="skeleton-text skeleton"></div>
+                                <div class="skeleton-text large skeleton"></div>
+                                <div class="skeleton-text skeleton" style="width: 50%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="empty-state hidden">
+                    <div class="empty-state-icon">🔍</div>
+                    <h3>No prices found</h3>
+                    <p>Try adjusting your filters or search terms</p>
+                </div>
+            </section>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer style="background: var(--stone-100); padding: var(--space-8) 0; margin-top: var(--space-16); text-align: center;">
+        <div class="container">
+            <p style="color: var(--text-secondary);">
+                🌾 Sri Lanka Market Prices • Real-time produce pricing across Sri Lanka
+            </p>
+            <p style="color: var(--text-muted); font-size: var(--text-sm); margin-top: var(--space-2);">
+                Data updated every 6 hours • <a href="#">About</a> • <a href="#">API</a> • <a href="#">Contact</a>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/demo-data.js"></script>
+    <script>
+        // Dashboard State
+        let filteredPrices = [...allPrices];
+        let selectedCategories = new Set();
+        let selectedMarkets = new Set();
+        let maxPrice = 5000;
+        let searchQuery = '';
+
+        // Initialize Dashboard
+        function initDashboard() {
+            renderStats();
+            renderCategoryFilters();
+            renderMarketFilters();
+            renderBestDeals();
+            renderAllPrices();
+            attachEventListeners();
+        }
+
+        // Render Statistics
+        function renderStats() {
+            document.getElementById('marketCount').textContent = DEMO_DATA.markets.length;
+            document.getElementById('produceCount').textContent = DEMO_DATA.produce.length;
+            document.getElementById('statMarkets').textContent = DEMO_DATA.markets.length;
+
+            // Count price increases/decreases
+            const increases = allPrices.filter(p => p.change > 0).length;
+            const deals = DEMO_DATA.getBestDeals(allPrices).length;
+
+            document.getElementById('statTrending').textContent = increases;
+            document.getElementById('statDeals').textContent = deals;
+            document.getElementById('statPopular').textContent = DEMO_DATA.getTrendingItems(allPrices).length;
+        }
+
+        // Render Category Filters
+        function renderCategoryFilters() {
+            const container = document.getElementById('categoryFilters');
+            container.innerHTML = DEMO_DATA.categories.map(cat => `
+                <label class="filter-option">
+                    <input type="checkbox" value="${cat.id}" class="category-filter">
+                    <span>${cat.icon} ${cat.name}</span>
+                </label>
+            `).join('');
+        }
+
+        // Render Market Filters
+        function renderMarketFilters() {
+            const container = document.getElementById('marketFilters');
+            container.innerHTML = DEMO_DATA.markets.map(market => `
+                <label class="filter-option">
+                    <input type="checkbox" value="${market.id}" class="market-filter">
+                    <span>${market.name}</span>
+                </label>
+            `).join('');
+        }
+
+        // Render Best Deals
+        function renderBestDeals() {
+            const deals = DEMO_DATA.getBestDeals(allPrices);
+            const container = document.getElementById('bestDealsGrid');
+
+            container.innerHTML = deals.map((price, index) => createPriceCard(price, index, true)).join('');
+        }
+
+        // Render All Prices
+        function renderAllPrices() {
+            const container = document.getElementById('allPricesGrid');
+            const emptyState = document.getElementById('emptyState');
+
+            if (filteredPrices.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                container.innerHTML = filteredPrices.slice(0, 20).map((price, index) =>
+                    createPriceCard(price, index)
+                ).join('');
+            }
+        }
+
+        // Create Price Card HTML
+        function createPriceCard(price, index, isBestDeal = false) {
+            const changeClass = price.change > 0 ? 'up' : 'down';
+            const changeIcon = price.change > 0 ? '↑' : '↓';
+
+            return `
+                <div class="card price-card stagger-item" style="animation-delay: ${index * 0.05}s;">
+                    ${isBestDeal ? '<div class="deal-badge">🔥 Best Deal</div>' : ''}
+
+                    <div class="price-card-image">
+                        <span style="font-size: 3rem;">${price.produce.icon}</span>
+                    </div>
+
+                    <div class="price-card-content">
+                        <h3 class="price-card-title">${price.produce.name}</h3>
+                        <div class="price-card-price">₨${price.price}</div>
+                        <div class="price-card-market">📍 ${price.market.name}</div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-3);">
+                            <span class="price-card-change ${changeClass}">
+                                ${changeIcon} ${Math.abs(price.change)}%
+                            </span>
+                            <span class="badge">${price.produce.unit}</span>
+                        </div>
+
+                        <div style="display: flex; gap: var(--space-2); margin-top: var(--space-4);">
+                            <button class="btn btn-sm btn-primary" style="flex: 1;" onclick="addToList(${price.produce_id})">
+                                Add to List
+                            </button>
+                            <button class="btn btn-sm btn-icon btn-ghost" onclick="viewDetails(${price.produce_id})" aria-label="View details">
+                                ℹ️
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Filter Prices
+        function applyFilters() {
+            filteredPrices = allPrices.filter(price => {
+                // Category filter
+                if (selectedCategories.size > 0 && !selectedCategories.has(price.category.id)) {
+                    return false;
+                }
+
+                // Market filter
+                if (selectedMarkets.size > 0 && !selectedMarkets.has(price.market.id)) {
+                    return false;
+                }
+
+                // Price filter
+                if (price.price > maxPrice) {
+                    return false;
+                }
+
+                // Search filter
+                if (searchQuery) {
+                    const query = searchQuery.toLowerCase();
+                    const matchesName = price.produce.name.toLowerCase().includes(query);
+                    const matchesSinhala = price.produce.name_sinhala.includes(query);
+                    const matchesTamil = price.produce.name_tamil.includes(query);
+
+                    if (!matchesName && !matchesSinhala && !matchesTamil) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+
+            renderAllPrices();
+        }
+
+        // Attach Event Listeners
+        function attachEventListeners() {
+            // Category filters
+            document.querySelectorAll('.category-filter').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    const catId = parseInt(e.target.value);
+                    if (e.target.checked) {
+                        selectedCategories.add(catId);
+                    } else {
+                        selectedCategories.delete(catId);
+                    }
+                    applyFilters();
+                });
+            });
+
+            // Market filters
+            document.querySelectorAll('.market-filter').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    const marketId = parseInt(e.target.value);
+                    if (e.target.checked) {
+                        selectedMarkets.add(marketId);
+                    } else {
+                        selectedMarkets.delete(marketId);
+                    }
+                    applyFilters();
+                });
+            });
+
+            // Price range
+            const priceRangeInput = document.getElementById('priceRange');
+            const priceRangeValue = document.getElementById('priceRangeValue');
+
+            priceRangeInput.addEventListener('input', (e) => {
+                maxPrice = parseInt(e.target.value);
+                priceRangeValue.textContent = maxPrice;
+                applyFilters();
+            });
+
+            // Clear filters
+            document.getElementById('clearFilters').addEventListener('click', () => {
+                selectedCategories.clear();
+                selectedMarkets.clear();
+                maxPrice = 5000;
+                searchQuery = '';
+
+                document.querySelectorAll('.category-filter, .market-filter').forEach(cb => cb.checked = false);
+                priceRangeInput.value = 5000;
+                priceRangeValue.textContent = '5000';
+                document.getElementById('heroSearch').value = '';
+
+                applyFilters();
+            });
+
+            // Search
+            document.getElementById('heroSearch').addEventListener('input', (e) => {
+                searchQuery = e.target.value;
+                applyFilters();
+            });
+
+            // Sort buttons
+            document.getElementById('sortPrice').addEventListener('click', () => {
+                filteredPrices.sort((a, b) => a.price - b.price);
+                renderAllPrices();
+            });
+
+            document.getElementById('sortName').addEventListener('click', () => {
+                filteredPrices.sort((a, b) => a.produce.name.localeCompare(b.produce.name));
+                renderAllPrices();
+            });
+
+            // Mobile nav toggle
+            document.getElementById('navToggle').addEventListener('click', () => {
+                document.getElementById('navMenu').classList.toggle('hidden');
+            });
+        }
+
+        // Action Functions
+        function addToList(produceId) {
+            alert(`Added to shopping list! (Produce ID: ${produceId})`);
+            // In production, this would save to shopping list
+        }
+
+        function viewDetails(produceId) {
+            window.location.href = `trends-new.html?produce=${produceId}`;
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', initDashboard);
+    </script>
+</body>
+</html>
