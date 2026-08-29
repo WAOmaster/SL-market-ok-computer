@@ -9,7 +9,7 @@
 (function () {
   'use strict';
 
-  const { barcode, catalog, cart, label, scanner, api } = window.SLScan;
+  const { barcode, catalog, cart, label, scanner, api, scanlog, report } = window.SLScan;
 
   const $ = sel => document.querySelector(sel);
   const $$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
@@ -42,7 +42,10 @@
     itemForm: $('#itemForm'),
     receipt: $('#receipt'),
     setTestOut: $('#setTestOut'),
-    apiStatus: $('#apiStatus')
+    apiStatus: $('#apiStatus'),
+    exportStatus: $('#exportStatus'),
+    billStatus: $('#billStatus'),
+    logStatus: $('#logStatus')
   };
 
   let recent = [];
@@ -109,6 +112,7 @@
     renderTotals();
     renderRecent();
     updateBadge();
+    renderBillCheck();
   }
 
   function updateBadge() {
@@ -284,6 +288,8 @@
    * ask once, then remember it.
    */
   function handleCode(raw, meta) {
+    const info = meta || {};
+    const source = info.source || (info.engine === 'manual' ? 'manual' : 'camera');
     const preferredRuleId = cart.getState().settings.preferredRuleId;
     const known = catalog.find(barcode.parse(raw));
     const parsed = barcode.parse(raw, {
@@ -295,19 +301,29 @@
     if (!parsed.code) {
       setStatus(el.scanStatus, 'That does not look like a barcode.', 'err');
       beep(false);
+      scanlog.record({
+        source: source, engine: info.engine, raw: raw, parsed: parsed,
+        outcome: 'rejected', message: 'No digits in the scanned value.'
+      });
+      updateLogStatus();
       return;
     }
 
     if (!product) {
       beep(false);
       setStatus(el.scanStatus, 'Code ' + parsed.code + ' is new - tell me what it is once and I will remember it.', 'warn');
+      scanlog.record({
+        source: source, engine: info.engine, raw: raw, parsed: parsed,
+        outcome: 'prompted', message: 'Code not in the catalog; asked the shopper.'
+      });
+      updateLogStatus();
       openItemDialog({
         code: parsed.itemCode,
         barcode: parsed.ean13,
         pricing: parsed.best && parsed.best.kind === 'weight' ? 'weight' : 'unit',
         weightKg: parsed.best && parsed.best.weightKg ? parsed.best.weightKg : 0,
         priceOverride: parsed.best && parsed.best.kind === 'price' ? parsed.best.totalPrice : null,
-        source: meta && meta.engine ? 'scan' : 'manual'
+        source: source
       });
       return;
     }
@@ -322,7 +338,7 @@
       unitPrice: product.unitPrice,
       qty: 1,
       weightKg: 0,
-      source: meta && meta.engine ? 'scan' : 'manual'
+      source: source
     };
 
     if (product.pricing === 'weight') {
@@ -331,6 +347,11 @@
         line.weightKg = weighed.weightKg;
       } else {
         // A per-kilo product scanned without a weight in the code: ask for it.
+        scanlog.record({
+          source: source, engine: info.engine, raw: raw, parsed: parsed, product: product,
+          outcome: 'prompted', message: 'Priced per kg but the code carried no weight; asked for it.'
+        });
+        updateLogStatus();
         openItemDialog(Object.assign(line, { needWeight: true }));
         return;
       }
@@ -339,7 +360,14 @@
     const priced = parsed.candidates.find(c => c.kind === 'price');
     if (priced && product.pricing !== 'weight') line.priceOverride = priced.totalPrice;
 
-    addToCart(line);
+    const outcome = addToCart(line);
+    scanlog.record({
+      source: source, engine: info.engine, raw: raw, parsed: parsed, product: product,
+      outcome: outcome && outcome.merged ? 'merged' : 'added',
+      line: outcome && outcome.item
+    });
+    updateLogStatus();
+
     setStatus(el.scanStatus, 'Added ' + product.name + ' - ' +
       (line.pricing === 'weight' ? line.weightKg.toFixed(3) + ' kg' : 'x1') + '.', 'ok');
   }
@@ -400,7 +428,7 @@
       syncProductToApi(product);
     }
 
-    addToCart({
+    const outcome = addToCart({
       code: product.code,
       barcode: ctx.barcode || product.code,
       name: product.name,
@@ -413,6 +441,20 @@
       priceOverride: ctx.priceOverride != null ? ctx.priceOverride : null,
       source: ctx.source || 'manual'
     });
+
+    scanlog.record({
+      source: ctx.source || 'manual',
+      raw: ctx.barcode || ctx.code || null,
+      product: product,
+      ocr: ctx.ocrReading || null,
+      keepRawText: keepOcrText(),
+      outcome: 'confirmed',
+      line: outcome && outcome.item,
+      message: $('#dRemember').checked && product.code
+        ? 'Confirmed by the shopper and saved to the catalog.'
+        : 'Confirmed by the shopper.'
+    });
+    updateLogStatus();
 
     setStatus(el.scanStatus, 'Added ' + product.name + '.', 'ok');
     dialogContext = null;
@@ -435,7 +477,7 @@
     try {
       const info = await scanner.start({
         video: el.video,
-        onDetect: (code, meta) => handleCode(code, meta),
+        onDetect: (code, meta) => handleCode(code, Object.assign({ source: 'camera' }, meta)),
         onError: err => setStatus(el.scanStatus, err.message || String(err), 'err')
       });
       el.viewfinder.classList.add('live');
@@ -474,10 +516,12 @@
     try {
       const hit = await scanner.scanImage(file);
       setStatus(el.scanStatus, 'Found ' + hit.code + '.', 'ok');
-      handleCode(hit.code, hit);
+      handleCode(hit.code, { engine: hit.engine, source: 'photo' });
     } catch (err) {
       beep(false);
       setStatus(el.scanStatus, err.message, 'err');
+      scanlog.record({ source: 'photo', outcome: 'error', message: err.message });
+      updateLogStatus();
     } finally {
       el.filePhoto.value = '';
     }
@@ -507,6 +551,11 @@
       if (!parsed.name && !parsed.totalPrice && !parsed.weightKg) {
         beep(false);
         setStatus(el.scanStatus, 'Could not make out that label. Try a straight, close photo of the sticker.', 'err');
+        scanlog.record({
+          source: 'ocr', outcome: 'rejected', ocr: parsed, keepRawText: keepOcrText(),
+          message: 'OCR found no usable fields on the label.'
+        });
+        updateLogStatus();
         return;
       }
 
@@ -518,9 +567,18 @@
 
       const merged = label.merge(bc, parsed, known);
       merged.name = merged.name || parsed.name || 'Label item';
+
+      scanlog.record({
+        source: 'ocr', raw: parsed.barcode, parsed: bc, product: known, ocr: parsed,
+        keepRawText: keepOcrText(), outcome: 'prompted',
+        message: 'Label read; waiting for the shopper to confirm.'
+      });
+      updateLogStatus();
+
       openItemDialog(Object.assign(merged, {
         qty: 1,
-        source: 'ocr'
+        source: 'ocr',
+        ocrReading: parsed
       }));
       setStatus(el.scanStatus, 'Read: ' + (parsed.name || 'item') +
         (parsed.totalPrice ? ' - ' + money(parsed.totalPrice) : '') +
@@ -528,6 +586,8 @@
     } catch (err) {
       beep(false);
       setStatus(el.scanStatus, err.message || 'The label could not be read.', 'err');
+      scanlog.record({ source: 'ocr', outcome: 'error', message: err.message || String(err) });
+      updateLogStatus();
     }
   }
 
@@ -537,7 +597,7 @@
     event.preventDefault();
     const code = el.manualCode.value.trim();
     if (!code) return;
-    handleCode(code, { engine: 'manual' });
+    handleCode(code, { engine: 'manual', source: 'manual' });
     el.manualCode.value = '';
   });
 
@@ -580,11 +640,14 @@
 
   $('#btnClear').addEventListener('click', () => {
     if (!cart.items().length) return;
-    if (!window.confirm('Empty the trolley and start a new trip?')) return;
+    if (!window.confirm('Empty the trolley and start a new trip? The scan log is cleared too.')) return;
+    // A new trip starts a new log, so an export never mixes two trips together.
     cart.clear();
+    scanlog.clear();
     recent = [];
     render();
     loadSettingsIntoForm();
+    updateLogStatus();
   });
 
   /* ---------------- exports ---------------- */
@@ -605,9 +668,69 @@
 
   function stamp() { return new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-'); }
 
+  function keepOcrText() { return !!cart.getState().settings.keepOcrText; }
+
+  function reportOptions() {
+    return {
+      tillTotal: cart.getState().settings.tillTotal || 0,
+      notes: cart.getState().settings.notes || null
+    };
+  }
+
+  /** The whole trip as one JSON object: cart, totals, verification and scan log. */
+  function reportText() { return report.toText(reportOptions()); }
+
   $('#btnCSV').addEventListener('click', () => download('cart-scan-' + stamp() + '.csv', cart.toCSV(), 'text/csv'));
-  $('#btnJSON').addEventListener('click', () =>
-    download('cart-scan-' + stamp() + '.json', JSON.stringify(cart.toJSON(), null, 2), 'application/json'));
+
+  $('#btnJSON').addEventListener('click', () => {
+    download('cart-scan-' + stamp() + '.json', reportText(), 'application/json');
+    setStatus(el.exportStatus, 'Downloaded the trip, its totals and ' +
+      scanlog.all().length + ' scan events as one JSON file.', 'ok');
+  });
+
+  /**
+   * Copying beats downloading on a phone, where a downloaded file is awkward to
+   * get back out again. Falls back to a hidden textarea where the clipboard API
+   * is unavailable (older iOS, insecure origins).
+   */
+  $('#btnCopyJSON').addEventListener('click', async () => {
+    const text = reportText();
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const area = document.createElement('textarea');
+        area.value = text;
+        area.setAttribute('readonly', 'readonly');
+        area.style.position = 'fixed';
+        area.style.opacity = '0';
+        document.body.appendChild(area);
+        area.select();
+        const ok = document.execCommand && document.execCommand('copy');
+        document.body.removeChild(area);
+        if (!ok) throw new Error('The browser refused the copy.');
+      }
+      setStatus(el.exportStatus, 'Copied ' + Math.round(text.length / 1024) +
+        ' KB to the clipboard - paste it wherever you want it analysed.', 'ok');
+    } catch (err) {
+      setStatus(el.exportStatus, 'Could not copy automatically: ' + err.message +
+        ' Use "Download JSON" instead.', 'err');
+    }
+  });
+
+  function renderBillCheck() {
+    const check = report.billCheck(cart.toJSON(), cart.getState().settings.tillTotal);
+    if (!check) { el.billStatus.hidden = true; return; }
+    setStatus(el.billStatus,
+      'Till ' + money(check.tillTotal) + ' vs app ' + money(check.appTotal) + ' - ' +
+      (check.matches ? 'they match.' : 'off by ' + money(Math.abs(check.difference)) + '. ' + check.note),
+      check.matches ? 'ok' : 'warn');
+  }
+
+  $('#setTill').addEventListener('change', (event) => {
+    cart.setSettings({ tillTotal: Math.max(0, Number(event.target.value) || 0) });
+    renderBillCheck();
+  });
 
   $('#btnPrint').addEventListener('click', () => {
     buildReceipt();
@@ -709,6 +832,32 @@
     setStatus(el.catalogStatus, 'Catalog reset.', 'ok');
   });
 
+  /* ---------------- scan log ---------------- */
+
+  function updateLogStatus() {
+    if (!el.logStatus) return;
+    const summary = scanlog.summary();
+    if (!summary.events) {
+      setStatus(el.logStatus, 'No scans recorded yet.', '');
+      return;
+    }
+    const parts = Object.keys(summary.byOutcome)
+      .map(k => summary.byOutcome[k] + ' ' + k);
+    setStatus(el.logStatus,
+      summary.events + ' scans recorded: ' + parts.join(', ') + '.' +
+      (summary.unresolved.length ? ' ' + summary.unresolved.length + ' need a look.' : ''),
+      summary.unresolved.length ? 'warn' : 'ok');
+  }
+
+  $('#btnClearLog').addEventListener('click', () => {
+    if (!window.confirm('Clear the scan log? The trolley itself is not touched.')) return;
+    scanlog.clear();
+    updateLogStatus();
+  });
+
+  $('#setKeepOcrText').addEventListener('change', e =>
+    cart.setSettings({ keepOcrText: e.target.checked }));
+
   /* ---------------- settings ---------------- */
 
   function loadSettingsIntoForm() {
@@ -719,6 +868,8 @@
     $('#setDiscountAmount').value = s.discountAmount || '';
     $('#setTax').value = s.taxPercent || '';
     $('#setMerge').checked = s.mergeDuplicates !== false;
+    $('#setKeepOcrText').checked = !!s.keepOcrText;
+    $('#setTill').value = s.tillTotal || '';
     $('#setApi').value = api.getBase();
 
     const select = $('#setRule');
@@ -817,6 +968,8 @@
   }));
   loadSettingsIntoForm();
   render();
+  updateLogStatus();
+  renderBillCheck();
 
   if (!scanner.hasNativeDetector()) {
     setStatus(el.scanStatus,

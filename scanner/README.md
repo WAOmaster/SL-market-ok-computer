@@ -15,6 +15,8 @@ scanner/
   js/catalog.js     code -> product, stored in localStorage
   js/cart.js        lines, counts, weights, discounts, totals
   js/label.js       reads the printed text of a label (OCR post-processing)
+  js/scanlog.js     what each scan did, failures included
+  js/report.js      the whole trip as one JSON object
   js/scanner.js     camera, photo decoding, lazy-loaded OCR
   js/api.js         optional sync with the backend
   js/app.js         UI wiring
@@ -92,6 +94,67 @@ not an authority.
 - Set a budget and the header total turns amber once you pass it.
 
 Export a trip as CSV or JSON, or print it as a receipt.
+
+## Exporting a trip for analysis
+
+The Cart tab's **Download JSON** and **Copy JSON** produce one object describing
+the whole trip - not just what ended up in the trolley, but how it got there.
+On a phone, **Copy JSON** is the one you want: a downloaded file is awkward to
+get back out of a phone, and the clipboard is not.
+
+```jsonc
+{
+  "format": "cart-scan.trip.v1",
+  "generatedAt": "2026-08-29T14:14:06.112Z",
+  "environment": { "userAgent": "...", "nativeBarcodeDetector": true, ... },
+  "trip":   { "store": "...", "settings": {...}, "items": [...], "totals": {...} },
+  "verification": {            // every line recomputed from its own parts
+    "recomputedSubtotal": 2403.08,
+    "reportedSubtotal": 2403.08,
+    "subtotalAgrees": true,
+    "disagreements": [],       // lines whose stored total drifted from the arithmetic
+    "lines": [ { "name": "Banana - Seeni", "arithmetic": 292.32,
+                 "overriddenTo": null, "reported": 292.32, "agrees": true } ]
+  },
+  "billCheck": {               // present once the till total is entered
+    "tillTotal": 2400, "appTotal": 2403.08, "difference": -3.08, "matches": false,
+    "note": "The app counted more than the till charged - ..."
+  },
+  "scanLog": {
+    "summary": { "events": 7, "byOutcome": {"added": 4, "prompted": 1, "confirmed": 1, "rejected": 1},
+                 "ruleHits": {"sl-weight-5": 4}, "checkDigitFailures": [], "unresolved": [...] },
+    "events": [ { "seq": 1, "at": "...", "source": "camera", "engine": "native",
+                  "raw": "9230101012188",
+                  "parsed": { "type": "embedded", "valid": true, "itemCode": "923010",
+                              "candidates": [ {"ruleId": "sl-weight-5", "kind": "weight",
+                                               "weightKg": 1.218, "score": 130} ] },
+                  "catalog": { "hit": true, "name": "Banana - Seeni", "unitPrice": 240 },
+                  "outcome": "added",
+                  "line": { "weightKg": 1.218, "unitPrice": 240, "lineTotal": 292.32 } } ]
+  }
+}
+```
+
+Three things make this worth reading after a test run:
+
+- **The scan log keeps the failures.** Scans that were rejected, that needed a
+  prompt, or that errored are recorded alongside the ones that worked, and the
+  summary lists them under `unresolved`. A trip where everything worked is not
+  the interesting case.
+- **`verification` recomputes rather than repeats.** It adds the lines up from
+  their own weights and prices instead of copying the app's totals, so a bug in
+  the totalling shows up as a disagreement instead of being confirmed by itself.
+  A line priced straight off the label is reported as `overriddenTo`, not as an
+  error.
+- **`billCheck` is the actual test.** Type what the till charged into "Check
+  against the till" on the Cart tab, and the export carries the variance and
+  which way it went - the app counting more usually means a double scan, the
+  till charging more usually means a missed item or a stale catalog price.
+
+Clearing the cart clears the scan log with it, so an export never mixes two
+trips. `Settings -> Scan log` shows the running counts and can clear the log on
+its own; the raw OCR text of each label read is only kept if you switch that on
+there.
 
 ## Offline first
 
