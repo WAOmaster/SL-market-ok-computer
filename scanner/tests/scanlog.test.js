@@ -47,6 +47,16 @@ test('raw OCR text is kept only when asked for', () => {
   assert.match(scanlog.record({ outcome: 'prompted', ocr: ocr, keepRawText: true }).ocr.rawText, /POTATOES/);
 });
 
+test('a prompt the shopper walked away from is flagged', () => {
+  scanlog.record({ source: 'camera', raw: '726045852502', outcome: 'cancelled',
+                   message: 'Asked the shopper; the item was not added.' });
+
+  const s = scanlog.summary();
+  assert.strictEqual(s.byOutcome.cancelled, 1);
+  assert.strictEqual(s.unresolved.length, 1, 'a scan that never became a line needs looking at');
+  assert.strictEqual(s.unresolved[0].raw, '726045852502');
+});
+
 test('the summary counts outcomes, sources and winning rules', () => {
   scanlog.record({ source: 'camera', outcome: 'added',
     parsed: { type: 'embedded', valid: true, code: '9230101012188', candidates: [{ ruleId: 'sl-weight-5' }] } });

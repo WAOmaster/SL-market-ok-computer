@@ -418,9 +418,11 @@
   /* ---------------- item dialog ---------------- */
 
   let dialogContext = null;
+  let dialogResolved = false;
 
   function openItemDialog(context) {
     dialogContext = context || {};
+    dialogResolved = false;
     const isWeight = dialogContext.pricing === 'weight';
 
     $('#itemDialogTitle').textContent = dialogContext.name ? 'Check this item' : 'New item';
@@ -460,8 +462,26 @@
 
   $('#dPricing').addEventListener('change', syncDialogMode);
 
+  /*
+   * A prompt the shopper walks away from is worth recording: it is an item that
+   * was scanned and never made it into the trolley, which is exactly the kind of
+   * gap that only shows up against the till receipt afterwards.
+   */
+  el.itemDialog.addEventListener('close', () => {
+    if (!dialogContext || dialogResolved) { dialogContext = null; return; }
+    scanlog.record({
+      source: dialogContext.source || 'manual',
+      raw: dialogContext.barcode || dialogContext.code || null,
+      outcome: 'cancelled',
+      message: 'Asked the shopper; the item was not added.'
+    });
+    updateLogStatus();
+    dialogContext = null;
+  });
+
   el.itemForm.addEventListener('submit', (event) => {
     if (event.submitter && event.submitter.value === 'cancel') return;
+    dialogResolved = true;
 
     const isWeight = $('#dPricing').value === 'weight';
     const ctx = dialogContext || {};
@@ -521,7 +541,6 @@
         learned.itemLength + '-digit item code, then a ' + learned.valueLength +
         '-digit weight) - the next one will price itself.'
       : ''), 'ok');
-    dialogContext = null;
   });
 
   /**

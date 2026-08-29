@@ -106,3 +106,53 @@ test('this chain\'s own format is preferred when two could fit', () => {
   assert.strictEqual(parsed.best.learned, true);
   assert.strictEqual(parsed.best.weightKg, 0.570);
 });
+
+test('a scale label with no check digit at all is still learned', () => {
+  /*
+   * Rathna Super prints a 14-digit code with no EAN check digit - the weight
+   * runs to the very last digit:
+   *
+   *     000000592 | 00568     0.568 kg
+   */
+  const rule = barcode.learnRule('00000059200568', { weightKg: 0.568, storeId: 'rathna' });
+
+  assert.ok(rule, 'a label that is not an EAN must still teach its format');
+  assert.strictEqual(rule.length, 14);
+  assert.strictEqual(rule.itemLength, 9);
+  assert.strictEqual(rule.valueLength, 5);
+  assert.strictEqual(rule.requireCheckDigit, false);
+
+  barcode.registerRules([rule]);
+  const parsed = barcode.parse('00000059200568');
+  assert.strictEqual(parsed.itemCode, '000000592');
+  assert.strictEqual(parsed.best.weightKg, 0.568);
+  // The till charged 0.568 x 199.00.
+  assert.strictEqual(barcode.round2(parsed.best.weightKg * 199), 113.03);
+
+  // A heavier pack of the same product resolves to the same item.
+  const next = barcode.parse('00000059201200');
+  assert.strictEqual(next.itemCode, '000000592');
+  assert.strictEqual(next.best.weightKg, 1.2);
+
+  barcode.registerRules([]);
+});
+
+test('a learned check-digit-free format does not swallow ordinary barcodes', () => {
+  const rule = barcode.learnRule('00000059200568', { weightKg: 0.568, storeId: 'rathna' });
+  barcode.registerRules([rule]);
+
+  // Products scanned on the same trip: 13 digits, so the 14-digit rule cannot apply.
+  ['4796003510023', '4792212011221', '4791034026017'].forEach(code => {
+    assert.strictEqual(barcode.parse(code).type, 'retail', code);
+  });
+  // And the Keells layout still reads its own labels.
+  assert.strictEqual(barcode.parse('923010012187').best.weightKg, 1.218);
+
+  barcode.registerRules([]);
+});
+
+test('the built-in layouts still insist on a valid check digit', () => {
+  // Same shape as a Keells label but with the wrong check digit: not decoded.
+  assert.strictEqual(barcode.parse('923010012188').type, 'retail');
+  assert.strictEqual(barcode.parse('923010012187').type, 'embedded');
+});

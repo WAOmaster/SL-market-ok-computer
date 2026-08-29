@@ -79,6 +79,7 @@
       label: 'Keells scale label - 12 digit, weight in grams',
       length: 12,
       prefixes: null,
+      requireCheckDigit: true,
       itemStart: 0, itemLength: 6,
       valueStart: 6, valueLength: 5,
       valueType: 'weight_g'
@@ -89,6 +90,7 @@
       id: 'sl-weight-5',
       label: 'SL scale label - internal check + 5 digit weight (grams)',
       prefixes: ['91', '92'],
+      requireCheckDigit: true,
       itemStart: 0, itemLength: 6,
       valueStart: 7, valueLength: 5,
       valueType: 'weight_g'
@@ -97,6 +99,7 @@
       id: 'sl-weight-6',
       label: 'SL scale label - 6 digit weight (grams)',
       prefixes: ['91', '92'],
+      requireCheckDigit: true,
       itemStart: 0, itemLength: 6,
       valueStart: 6, valueLength: 6,
       valueType: 'weight_g'
@@ -105,6 +108,7 @@
       id: 'sl-price-6',
       label: 'SL scale label - 6 digit total price (cents)',
       prefixes: ['91', '92'],
+      requireCheckDigit: true,
       itemStart: 0, itemLength: 6,
       valueStart: 6, valueLength: 6,
       valueType: 'price_cents'
@@ -113,6 +117,7 @@
       id: 'gs1-price-20',
       label: 'GS1 variable measure - price (cents)',
       prefixes: ['20', '21', '22', '23', '24', '25', '26', '27', '28', '29'],
+      requireCheckDigit: true,
       itemStart: 0, itemLength: 7,
       valueStart: 7, valueLength: 5,
       valueType: 'price_cents'
@@ -151,8 +156,11 @@
   function learnRule(code, options) {
     const opts = options || {};
     const c = normalize(code);
-    if (c.length < 8 || c.length > 14) return null;
-    if (!isValidEan(c)) return null;
+    if (c.length < 8 || c.length > 18) return null;
+
+    // Not every scale label is an EAN. Plenty are Code 128 or ITF, which carry
+    // whatever digits the scale chose and no check digit to verify them.
+    const hasCheckDigit = isValidEan(c);
 
     const targets = [];
     if (Number(opts.weightKg) > 0) {
@@ -163,36 +171,48 @@
     }
     if (!targets.length) return null;
 
-    const body = c.slice(0, -1);
+    /*
+     * Two framings, because a store either ends its code with a check digit or
+     * ends it with the value itself. The one that matches the sample wins; if
+     * the code validates as an EAN the check-digit framing is tried first.
+     */
+    const bodies = hasCheckDigit
+      ? [{ body: c.slice(0, -1), requireCheckDigit: true }, { body: c, requireCheckDigit: false }]
+      : [{ body: c, requireCheckDigit: false }];
 
     for (const target of targets) {
       for (const length of [5, 6, 4, 7]) {
         const needle = String(target.value).padStart(length, '0');
         if (needle.length !== length) continue;
 
-        // The field almost always ends where the check digit begins; failing
-        // that, take the right-most place the value appears.
-        const positions = [body.length - length];
-        for (let i = body.length - length - 1; i >= 4; i--) positions.push(i);
+        for (const framing of bodies) {
+          const body = framing.body;
 
-        for (const start of positions) {
-          // Leave room for an item code worth looking up.
-          if (start < 4 || body.substr(start, length) !== needle) continue;
+          // The field almost always ends the body; failing that, take the
+          // right-most place the value appears.
+          const positions = [body.length - length];
+          for (let i = body.length - length - 1; i >= 4; i--) positions.push(i);
 
-          return {
-            id: 'learned-' + (opts.storeId || 'store') + '-' + c.length + '-' +
-                start + '-' + length + '-' + target.type,
-            label: (opts.storeName || 'This store') + ' - ' + c.length + ' digit, ' +
-                   (target.type === 'weight_g' ? 'weight in grams' : 'price in cents') +
-                   ' at position ' + start,
-            learned: true,
-            storeId: opts.storeId || '',
-            length: c.length,
-            prefixes: null,
-            itemStart: 0, itemLength: start,
-            valueStart: start, valueLength: length,
-            valueType: target.type
-          };
+          for (const start of positions) {
+            // Leave room for an item code worth looking up.
+            if (start < 4 || body.substr(start, length) !== needle) continue;
+
+            return {
+              id: 'learned-' + (opts.storeId || 'store') + '-' + c.length + '-' +
+                  start + '-' + length + '-' + target.type,
+              label: (opts.storeName || 'This store') + ' - ' + c.length + ' digit, ' +
+                     (target.type === 'weight_g' ? 'weight in grams' : 'price in cents') +
+                     ' at position ' + start,
+              learned: true,
+              storeId: opts.storeId || '',
+              length: c.length,
+              prefixes: null,
+              requireCheckDigit: framing.requireCheckDigit,
+              itemStart: 0, itemLength: start,
+              valueStart: start, valueLength: length,
+              valueType: target.type
+            };
+          }
         }
       }
     }
@@ -209,7 +229,14 @@
     // A rule without a prefix list applies to any code of the right length;
     // the check digit and the plausibility of the weight are what qualify it.
     if (rule.prefixes && !rule.prefixes.some(p => c.startsWith(p))) return null;
-    if (!isValidEan(c)) return null;
+    /*
+     * Only where the symbology actually has one. The built-in UPC/EAN layouts
+     * need it, since without it any 12-digit product barcode would look like a
+     * scale label. In-store labels printed as Code 128 or ITF carry arbitrary
+     * digits and no check digit at all, so a learned rule says for itself
+     * whether one applies.
+     */
+    if (rule.requireCheckDigit !== false && !isValidEan(c)) return null;
 
     const itemCode = c.substr(rule.itemStart, rule.itemLength);
     const rawValue = c.substr(rule.valueStart, rule.valueLength);

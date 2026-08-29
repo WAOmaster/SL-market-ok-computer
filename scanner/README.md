@@ -124,6 +124,19 @@ forgotten there if a store changes its printing.
 If a store hides the total price rather than the weight, that is learned the
 same way - type the price off the sticker instead.
 
+Not every scale label is an EAN. Rathna Super prints a 14-digit code with no
+check digit at all, and the weight runs to the very last digit:
+
+```
+0 0 0 0 0 0 5 9 2 | 0 0 5 6 8
+\_________________/  \_________/
+       item            0.568 kg, to the end of the code
+```
+
+So a learned format records for itself whether a check digit applies. The
+built-in EAN and UPC layouts still insist on theirs - without that, any 12-digit
+product barcode would look like a scale label.
+
 ### When the barcode will not scan
 
 Produce stickers get creased inside a knotted bag. "Read label text" runs OCR
@@ -192,9 +205,11 @@ get back out of a phone, and the clipboard is not.
 
 Three things make this worth reading after a test run:
 
-- **The scan log keeps the failures.** Scans that were rejected, that needed a
-  prompt, or that errored are recorded alongside the ones that worked, and the
-  summary lists them under `unresolved`. A trip where everything worked is not
+- **The scan log keeps the failures.** Scans that were rejected, that errored,
+  or that the shopper was asked about and walked away from are recorded
+  alongside the ones that worked, and the summary lists them under `unresolved`.
+  A scan that never became a line is exactly the kind of gap that otherwise only
+  shows up against the till receipt. A trip where everything worked is not
   the interesting case.
 - **`verification` recomputes rather than repeats.** It adds the lines up from
   their own weights and prices instead of copying the app's totals, so a bug in

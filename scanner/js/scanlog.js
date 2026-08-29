@@ -27,6 +27,7 @@
     'merged',     // same packet again: its count went up
     'prompted',   // unknown or incomplete: the shopper was asked
     'confirmed',  // the shopper answered the prompt and the line was added
+    'cancelled',  // the shopper was asked and walked away from it
     'rejected',   // nothing usable came out of the scan
     'error'       // the camera, the decoder or OCR failed
   ];
@@ -191,7 +192,7 @@
       byOutcome[e.outcome] = (byOutcome[e.outcome] || 0) + 1;
       bySource[e.source] = (bySource[e.source] || 0) + 1;
 
-      if (e.outcome === 'rejected' || e.outcome === 'error') {
+      if (e.outcome === 'rejected' || e.outcome === 'error' || e.outcome === 'cancelled') {
         unresolved.push({ seq: e.seq, raw: e.raw, source: e.source, message: e.message });
       }
       const winner = e.parsed && e.parsed.candidates && e.parsed.candidates[0];
