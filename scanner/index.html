@@ -194,6 +194,7 @@
         <label class="field">Store
           <input type="text" id="setStore" placeholder="Keells - Nugegoda">
         </label>
+        <div class="status" id="storeChain"></div>
         <div class="grid-3" style="margin-top:12px">
           <label class="field">Budget (Rs.)
             <input type="number" id="setBudget" min="0" step="10" placeholder="0">
@@ -236,6 +237,10 @@
           <button class="btn" id="btnApiPush">Save this trip to the API</button>
         </div>
         <div class="status" id="apiStatus" hidden></div>
+
+        <h2 style="margin-top:18px">Label formats learned</h2>
+        <p class="hint">Set the store name before you start. At a supermarket the app has not seen, confirm the first weighed item by hand and its label format is worked out from the code and the weight you typed - every later label there decodes on its own.</p>
+        <div class="catalog-list" id="learnedRules"></div>
 
         <h2 style="margin-top:18px">Scan log</h2>
         <p class="hint">Every scan is recorded - the raw code, how it decoded, which layout won, and whether it made it into the cart. Rejected scans are kept too; they are the ones worth reading after a test run. The log travels inside the exported JSON.</p>
@@ -299,6 +304,7 @@
 
 <script src="js/barcode.js"></script>
 <script src="js/catalog.js"></script>
+<script src="js/stores.js"></script>
 <script src="js/cart.js"></script>
 <script src="js/scanlog.js"></script>
 <script src="js/label.js"></script>

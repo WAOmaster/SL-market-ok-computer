@@ -9,7 +9,7 @@
 (function () {
   'use strict';
 
-  const { barcode, catalog, cart, label, scanner, api, scanlog, report } = window.SLScan;
+  const { barcode, catalog, cart, label, scanner, api, scanlog, report, stores } = window.SLScan;
 
   const $ = sel => document.querySelector(sel);
   const $$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
@@ -45,7 +45,9 @@
     apiStatus: $('#apiStatus'),
     exportStatus: $('#exportStatus'),
     billStatus: $('#billStatus'),
-    logStatus: $('#logStatus')
+    logStatus: $('#logStatus'),
+    learnedRules: $('#learnedRules'),
+    storeChain: $('#storeChain')
   };
 
   let recent = [];
@@ -54,6 +56,11 @@
   /* ---------------- helpers ---------------- */
 
   function currency() { return cart.getState().settings.currency || 'Rs.'; }
+
+  /** The chain being shopped, which scopes both prices and label formats. */
+  function chain() { return stores.chainOf(cart.getState().store); }
+
+  function scope() { return { store: chain() }; }
 
   function money(n) {
     return currency() + ' ' + (Number(n) || 0).toFixed(2)
@@ -243,7 +250,7 @@
   }
 
   function renderCatalog() {
-    const products = catalog.search(el.catalogSearch.value);
+    const products = catalog.search(el.catalogSearch.value, scope());
     if (!products.length) {
       el.catalogList.innerHTML = '<div class="empty">No products match that search.</div>';
       return;
@@ -291,12 +298,12 @@
     const info = meta || {};
     const source = info.source || (info.engine === 'manual' ? 'manual' : 'camera');
     const preferredRuleId = cart.getState().settings.preferredRuleId;
-    const known = catalog.find(barcode.parse(raw));
+    const known = catalog.find(barcode.parse(raw), scope());
     const parsed = barcode.parse(raw, {
       preferredRuleId: preferredRuleId,
       catalogUnitPrice: known ? known.unitPrice : 0
     });
-    const product = known || catalog.find(parsed);
+    const product = known || catalog.find(parsed, scope());
 
     if (!parsed.code) {
       setStatus(el.scanStatus, 'That does not look like a barcode.', 'err');
@@ -306,6 +313,37 @@
         outcome: 'rejected', message: 'No digits in the scanned value.'
       });
       updateLogStatus();
+      return;
+    }
+
+    /*
+     * A price recorded at another chain is a starting point, not a price. The
+     * item codes collide across chains and the prices differ, so it is offered
+     * in the dialog, prefilled, for the shopper to check against the shelf.
+     */
+    if (product && product.fromOtherStore) {
+      beep(false);
+      const weighed = parsed.candidates.find(c => c.kind === 'weight');
+      setStatus(el.scanStatus, product.name + ' is priced from another shop (' +
+        money(product.unitPrice) + (product.pricing === 'weight' ? '/kg' : '') +
+        '). Check it against the shelf before adding.', 'warn');
+      scanlog.record({
+        source: source, engine: info.engine, raw: raw, parsed: parsed, product: product,
+        outcome: 'prompted', message: 'Known only at another chain (' + product.store + '); asked the shopper.'
+      });
+      updateLogStatus();
+      openItemDialog({
+        code: product.code,
+        barcode: parsed.ean13,
+        name: product.name,
+        category: product.category,
+        pricing: product.pricing,
+        unitPrice: product.unitPrice,
+        weightKg: weighed ? weighed.weightKg : 0,
+        unusualWeight: !!(weighed && weighed.unusualWeight),
+        fromOtherStore: product.store,
+        source: source
+      });
       return;
     }
 
@@ -319,7 +357,10 @@
       updateLogStatus();
       openItemDialog({
         code: parsed.itemCode,
-        barcode: parsed.ean13,
+        // The code exactly as scanned - the format is learned from this, and
+        // padding it to 13 digits would move the field.
+        barcode: parsed.code,
+        decoded: parsed.type === 'embedded',
         pricing: parsed.best && parsed.best.kind === 'weight' ? 'weight' : 'unit',
         weightKg: parsed.best && parsed.best.weightKg ? parsed.best.weightKg : 0,
         unusualWeight: !!(parsed.best && parsed.best.unusualWeight),
@@ -344,6 +385,7 @@
 
     if (product.pricing === 'weight') {
       const weighed = parsed.candidates.find(c => c.kind === 'weight');
+      line.decoded = !!weighed;
       if (weighed) {
         line.weightKg = weighed.weightKg;
       } else {
@@ -387,6 +429,10 @@
         (dialogContext.weightKg ? ' - ' + dialogContext.weightKg.toFixed(3) + ' kg from the barcode' : '') +
         (dialogContext.unusualWeight
           ? '. That weight looks wrong for a hand-carried pack - the camera may have misread the label, so check it against the sticker.'
+          : '') +
+        (dialogContext.fromOtherStore
+          ? '. The price shown is what this code cost at ' + dialogContext.fromOtherStore +
+            ' - check it against the shelf here.'
           : '')
       : 'Not everything has a barcode - add it by hand.';
 
@@ -419,19 +465,24 @@
 
     const isWeight = $('#dPricing').value === 'weight';
     const ctx = dialogContext || {};
+    const weightKg = isWeight ? Number($('#dWeight').value) || 0 : 0;
     const product = {
       code: ctx.code || '',
       name: $('#dName').value.trim(),
       unitPrice: Number($('#dPrice').value) || 0,
       pricing: isWeight ? 'weight' : 'unit',
       unit: isWeight ? 'kg' : 'pc',
-      category: $('#dCategory').value.trim() || 'Other'
+      category: $('#dCategory').value.trim() || 'Other',
+      store: chain()
     };
 
     if ($('#dRemember').checked && product.code) {
       catalog.upsert(product);
       syncProductToApi(product);
     }
+
+    const learned = learnLabelFormat(ctx, weightKg);
+
 
     const outcome = addToCart({
       code: product.code,
@@ -442,10 +493,14 @@
       unit: product.unit,
       unitPrice: product.unitPrice,
       qty: isWeight ? 1 : Math.max(1, parseInt($('#dQty').value, 10) || 1),
-      weightKg: isWeight ? Number($('#dWeight').value) || 0 : 0,
+      weightKg: weightKg,
       priceOverride: ctx.priceOverride != null ? ctx.priceOverride : null,
       source: ctx.source || 'manual'
     });
+
+    if (learned && $('#dRemember').checked && product.code) {
+      refileUnderItemCode(ctx.barcode, product.code, outcome && outcome.item && outcome.item.id);
+    }
 
     scanlog.record({
       source: ctx.source || 'manual',
@@ -461,9 +516,82 @@
     });
     updateLogStatus();
 
-    setStatus(el.scanStatus, 'Added ' + product.name + '.', 'ok');
+    setStatus(el.scanStatus, 'Added ' + product.name + '.' + (learned
+      ? ' Learned how ' + cart.getState().store + ' writes its labels (' +
+        learned.itemLength + '-digit item code, then a ' + learned.valueLength +
+        '-digit weight) - the next one will price itself.'
+      : ''), 'ok');
     dialogContext = null;
   });
+
+  /**
+   * Work out this store's label format from a label the shopper has just
+   * confirmed by hand.
+   *
+   * The first weighed item at a new supermarket is typed in; from the code and
+   * that weight the layout can be derived, and every later label at that chain
+   * decodes on its own. Nothing is learned from a code that already decoded, or
+   * from a store with no name set - a format has to belong to somewhere.
+   */
+  function learnLabelFormat(context, weightKg) {
+    const storeName = cart.getState().store;
+    if (!storeName || !context || !context.barcode) return null;
+    if (context.decoded) return null;
+    if (!(weightKg > 0)) return null;
+
+    const rule = barcode.learnRule(context.barcode, {
+      weightKg: weightKg,
+      storeId: chain(),
+      storeName: storeName
+    });
+    if (!rule) return null;
+
+    const remembered = stores.rememberRule(storeName, rule);
+    if (!remembered) return null;
+
+    stores.registerAll(storeName);
+    renderLearnedRules();
+    return remembered;
+  }
+
+  /**
+   * Re-file the product that taught us the format.
+   *
+   * It was saved before the layout was known, so its key is the whole barcode -
+   * weight and all - which no second pack will ever match. Learning the format
+   * is the moment the real item code becomes visible, so the entry moves to it.
+   */
+  function refileUnderItemCode(rawCode, savedCode, lineId) {
+    if (!rawCode || !savedCode) return null;
+
+    const parsed = barcode.parse(rawCode);
+    if (parsed.type !== 'embedded' || !parsed.itemCode) return null;
+    if (parsed.itemCode === savedCode) return null;
+
+    const saved = catalog.find(savedCode, scope());
+    if (!saved || saved.fromOtherStore) return null;
+
+    catalog.upsert(Object.assign({}, saved, { code: parsed.itemCode, store: chain() }));
+    catalog.remove(savedCode, chain());
+    if (lineId) cart.update(lineId, { code: parsed.itemCode });
+
+    return parsed.itemCode;
+  }
+
+  function renderLearnedRules() {
+    if (!el.learnedRules) return;
+    const rules = stores.allRules();
+    if (!rules.length) {
+      el.learnedRules.innerHTML =
+        '<div class="empty">No label formats learned yet. Set the store name, then confirm one weighed item by hand and the format is worked out from it.</div>';
+      return;
+    }
+    el.learnedRules.innerHTML = rules.map(r =>
+      '<div class="catalog-item"><div class="info"><b>' + escapeHtml(r.label) + '</b>' +
+      '<span>' + escapeHtml(r.storeId || 'any store') + ' &middot; item ' + r.itemLength +
+      ' digits, then ' + r.valueLength + '</span></div>' +
+      '<button class="btn small danger" data-forget="' + escapeHtml(r.id) + '">&times;</button></div>').join('');
+  }
 
   /* ---------------- camera ---------------- */
 
@@ -777,7 +905,8 @@
       pricing: $('#pPricing').value,
       unitPrice: Number($('#pPrice').value) || 0,
       unit: $('#pPricing').value === 'weight' ? 'kg' : 'pc',
-      category: $('#pCategory').value.trim() || 'Other'
+      category: $('#pCategory').value.trim() || 'Other',
+      store: chain()
     };
     const saved = catalog.upsert(product);
     if (!saved) {
@@ -795,7 +924,7 @@
     if (!button) return;
 
     if (button.dataset.edit) {
-      const product = catalog.find(button.dataset.edit);
+      const product = catalog.find(button.dataset.edit, scope());
       if (!product) return;
       $('#pCode').value = product.code;
       $('#pName').value = product.name;
@@ -805,7 +934,7 @@
       $('#pName').focus();
     } else if (button.dataset.remove) {
       if (!window.confirm('Remove this product from the catalog?')) return;
-      catalog.remove(button.dataset.remove);
+      catalog.remove(button.dataset.remove, chain());
       renderCatalog();
     }
   });
@@ -884,7 +1013,38 @@
     select.value = s.preferredRuleId || '';
   }
 
-  $('#setStore').addEventListener('change', e => { cart.setStore(e.target.value); updateBadge(); });
+  function renderStoreScope() {
+    if (!el.storeChain) return;
+    const name = cart.getState().store;
+    const id = chain();
+    if (!id) {
+      setStatus(el.storeChain,
+        'No store set. Prices and learned label formats are shared across every shop until you name one.', 'warn');
+      return;
+    }
+    const mine = catalog.search('', { store: id }).length;
+    setStatus(el.storeChain,
+      'Prices and label formats are kept under "' + id + '", so ' + name +
+      ' cannot be priced from another chain. ' + mine + ' products known here.', 'ok');
+  }
+
+  $('#setStore').addEventListener('change', e => {
+    cart.setStore(e.target.value);
+    // A new store means a different price list and a different label format.
+    stores.registerAll(cart.getState().store);
+    updateBadge();
+    renderStoreScope();
+    renderCatalog();
+    renderLearnedRules();
+  });
+
+  $('#learnedRules').addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-forget]');
+    if (!button) return;
+    if (!window.confirm('Forget this label format? It can be learned again from the next label.')) return;
+    stores.forgetRule(button.dataset.forget);
+    renderLearnedRules();
+  });
   ['setBudget', 'setDiscountPercent', 'setDiscountAmount', 'setTax'].forEach(id => {
     $('#' + id).addEventListener('change', () => {
       cart.setSettings({
@@ -972,9 +1132,12 @@
       (i.pricing === 'weight' ? i.weightKg.toFixed(3) + ' kg' : 'x' + i.qty) + ' - restored'
   }));
   loadSettingsIntoForm();
+  stores.registerAll(cart.getState().store);
   render();
   updateLogStatus();
   renderBillCheck();
+  renderStoreScope();
+  renderLearnedRules();
 
   if (!scanner.hasNativeDetector()) {
     setStatus(el.scanStatus,

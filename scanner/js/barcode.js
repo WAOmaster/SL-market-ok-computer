@@ -119,8 +119,84 @@
     }
   ];
 
+  /*
+   * Layouts worked out from a real label at a store the app had not seen before
+   * (see learnRule). They are kept by the caller and registered here so the
+   * decoder treats them like any built-in rule.
+   */
+  let learnedRules = [];
+
+  function registerRules(rules) {
+    learnedRules = (rules || []).filter(r => r && r.valueLength > 0);
+    return learnedRules.slice();
+  }
+
+  function allRules() {
+    return learnedRules.concat(EMBEDDED_RULES);
+  }
+
   function ruleById(id) {
-    return EMBEDDED_RULES.find(r => r.id === id) || null;
+    return allRules().find(r => r.id === id) || null;
+  }
+
+  /**
+   * Work out where a store hides the weight (or the price) in its scale labels,
+   * from one label whose true value the shopper has just typed in.
+   *
+   * Every format seen so far puts the variable field immediately before the
+   * check digit, so that is tried first; anything else is matched right to left.
+   * The result is an ordinary rule, so one confirmed label teaches the app to
+   * read every later label from that store on its own.
+   */
+  function learnRule(code, options) {
+    const opts = options || {};
+    const c = normalize(code);
+    if (c.length < 8 || c.length > 14) return null;
+    if (!isValidEan(c)) return null;
+
+    const targets = [];
+    if (Number(opts.weightKg) > 0) {
+      targets.push({ value: Math.round(opts.weightKg * 1000), type: 'weight_g' });
+    }
+    if (Number(opts.totalPrice) > 0) {
+      targets.push({ value: Math.round(opts.totalPrice * 100), type: 'price_cents' });
+    }
+    if (!targets.length) return null;
+
+    const body = c.slice(0, -1);
+
+    for (const target of targets) {
+      for (const length of [5, 6, 4, 7]) {
+        const needle = String(target.value).padStart(length, '0');
+        if (needle.length !== length) continue;
+
+        // The field almost always ends where the check digit begins; failing
+        // that, take the right-most place the value appears.
+        const positions = [body.length - length];
+        for (let i = body.length - length - 1; i >= 4; i--) positions.push(i);
+
+        for (const start of positions) {
+          // Leave room for an item code worth looking up.
+          if (start < 4 || body.substr(start, length) !== needle) continue;
+
+          return {
+            id: 'learned-' + (opts.storeId || 'store') + '-' + c.length + '-' +
+                start + '-' + length + '-' + target.type,
+            label: (opts.storeName || 'This store') + ' - ' + c.length + ' digit, ' +
+                   (target.type === 'weight_g' ? 'weight in grams' : 'price in cents') +
+                   ' at position ' + start,
+            learned: true,
+            storeId: opts.storeId || '',
+            length: c.length,
+            prefixes: null,
+            itemStart: 0, itemLength: start,
+            valueStart: start, valueLength: length,
+            valueType: target.type
+          };
+        }
+      }
+    }
+    return null;
   }
 
   /**
@@ -145,6 +221,7 @@
     const candidate = {
       ruleId: rule.id,
       ruleLabel: rule.label,
+      learned: !!rule.learned,
       itemCode: itemCode,
       raw: rawValue
     };
@@ -177,7 +254,7 @@
     const opts = options || {};
     const rules = opts.rules && opts.rules.length
       ? opts.rules.map(r => (typeof r === 'string' ? ruleById(r) : r)).filter(Boolean)
-      : EMBEDDED_RULES;
+      : allRules();
 
     const candidates = [];
     rules.forEach(rule => {
@@ -191,6 +268,7 @@
     candidates.forEach(c => {
       let score = 0;
       if (opts.preferredRuleId && c.ruleId === opts.preferredRuleId) score += 100;
+      if (c.learned) score += 40;
       if (c.kind === 'weight') {
         // Typical supermarket weighed pack: 100 g - 5 kg.
         if (c.weightKg >= 0.05 && c.weightKg <= 5) score += 20;
@@ -270,6 +348,9 @@
     toEan13,
     parse,
     decodeEmbedded,
+    learnRule,
+    registerRules,
+    allRules,
     applyRule,
     ruleById,
     EMBEDDED_RULES,

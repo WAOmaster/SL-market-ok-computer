@@ -15,6 +15,7 @@ scanner/
   js/catalog.js     code -> product, stored in localStorage
   js/cart.js        lines, counts, weights, discounts, totals
   js/label.js       reads the printed text of a label (OCR post-processing)
+  js/stores.js      per-chain prices and learned label formats
   js/scanlog.js     what each scan did, failures included
   js/report.js      the whole trip as one JSON object
   js/scanner.js     camera, photo decoding, lazy-loaded OCR
@@ -92,6 +93,36 @@ different but perfectly valid barcode. What gives it away is the weight - a
 sticker that decodes to 9.27 kg of ribbed gourd was not read correctly - so
 anything over 8 kg is flagged in the confirmation dialog rather than accepted
 quietly.
+
+### At a supermarket the app has not seen
+
+Set the store name in Settings **before you start**. Two things hang off it.
+
+**Prices are kept per chain.** Item codes collide between chains - `914044` is
+Ribbed Gourd at Keells and could be anything at the next one - and the prices
+differ anyway. A code known only at another chain is still offered, prefilled,
+but the dialog says where the price came from and asks you to check the shelf;
+it is never charged silently. Branches share a chain: what you teach the app at
+Keells Panadura is used at Keells Nugegoda.
+
+**The label format is learned from one item.** Confirm the first weighed item by
+hand - name, price per kg, and the weight off the sticker - and the layout is
+worked out by finding that weight inside the barcode:
+
+```
+7012345 | 00250 | 5      typed: 0.250 kg
+\_______/  \_____/  |
+   item     weight   check digit
+```
+
+From then on every label at that chain decodes on its own, and the product that
+taught the app the format is re-filed under its real item code, so the next pack
+of it prices itself too. Learned formats are listed under
+`Settings -> Label formats learned`, with the store they belong to, and can be
+forgotten there if a store changes its printing.
+
+If a store hides the total price rather than the weight, that is learned the
+same way - type the price off the sticker instead.
 
 ### When the barcode will not scan
 
