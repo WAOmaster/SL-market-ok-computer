@@ -273,3 +273,91 @@ class ErrorResponse(BaseModel):
     error: str
     detail: Optional[str] = None
     success: bool = False
+
+
+# Scanner Schemas
+class ScannerProductBase(BaseModel):
+    """A product the scanner app can price from its code."""
+    code: str = Field(..., min_length=3, max_length=32)
+    name: str = Field(..., min_length=1, max_length=255)
+    unitPrice: float = Field(0.0, ge=0)
+    pricing: str = Field("unit", pattern="^(unit|weight)$")
+    unit: Optional[str] = None
+    category: Optional[str] = "Other"
+
+
+class ScannerProductCreate(ScannerProductBase):
+    """Schema for adding or updating a scanner product."""
+    pass
+
+
+class ScannerProduct(ScannerProductBase):
+    """Scanner product response schema."""
+    id: int
+    updatedAt: Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ScannerCatalog(BaseModel):
+    """The whole catalog, as the app imports it."""
+    count: int
+    products: List[ScannerProduct]
+
+
+class ScanItemIn(BaseModel):
+    """One scanned line arriving from the app."""
+    code: Optional[str] = None
+    barcode: Optional[str] = None
+    name: str
+    category: Optional[str] = "Other"
+    pricing: str = Field("unit", pattern="^(unit|weight)$")
+    qty: int = Field(1, ge=1)
+    weightKg: float = Field(0.0, ge=0)
+    unitPrice: float = Field(0.0, ge=0)
+    lineTotal: float = Field(0.0, ge=0)
+    source: Optional[str] = None
+
+
+class ScanTotalsIn(BaseModel):
+    """Totals as the app calculated them; recomputed server side before saving."""
+    subtotal: float = 0.0
+    discount: float = 0.0
+    tax: float = 0.0
+    total: float = 0.0
+    itemCount: int = 0
+    currency: str = "Rs."
+
+
+class ScanSessionCreate(BaseModel):
+    """A finished shopping trip pushed up from a device."""
+    id: Optional[str] = None
+    store: Optional[str] = None
+    startedAt: Optional[datetime] = None
+    items: List[ScanItemIn] = []
+    totals: Optional[ScanTotalsIn] = None
+
+
+class ScanItem(ScanItemIn):
+    """Scanned line response schema."""
+    id: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ScanSession(BaseModel):
+    """Saved shopping trip response schema."""
+    id: int
+    client_id: Optional[str] = None
+    store: Optional[str] = None
+    currency: str
+    subtotal: float
+    discount: float
+    tax: float
+    total: float
+    item_count: int
+    started_at: Optional[datetime] = None
+    created_at: Optional[datetime] = None
+    items: List[ScanItem] = []
+
+    model_config = ConfigDict(from_attributes=True)

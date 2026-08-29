@@ -112,13 +112,14 @@ async def general_exception_handler(request, exc):
 
 
 # Include routers
-from routers import prices, produce, markets, predictions, shopping
+from routers import prices, produce, markets, predictions, shopping, scanner
 
 app.include_router(prices.router)
 app.include_router(produce.router)
 app.include_router(markets.router)
 app.include_router(predictions.router)
 app.include_router(shopping.router)
+app.include_router(scanner.router)
 
 
 # Root endpoint
