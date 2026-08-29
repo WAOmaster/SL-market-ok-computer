@@ -111,3 +111,40 @@ test('a trip can be saved and restored', () => {
   assert.strictEqual(cart.getState().store, 'Keells - Nugegoda');
   assert.strictEqual(cart.totals().total, 420);
 });
+
+test('the whole Keells trip totals to the cent', () => {
+  // Every weighed line from the 29-08-2026 bill, priced from the label weight.
+  [
+    ['923010', 'Banana - Seeni', 240, 1.218], ['923010', 'Banana - Seeni', 240, 0.402],
+    ['914005', 'Pre-packed Big Onions', 380, 2.380], ['015427', 'Red Kekulu Samba', 240, 0.564],
+    ['914014', 'Garlic', 890, 0.280], ['915013', 'Potatoes', 390, 1.804],
+    ['004681', 'Rice Samba Bulk', 240, 1.006], ['021445', 'White Sugar', 212, 1.166],
+    ['021445', 'White Sugar', 212, 0.522], ['923063', 'Melon', 80, 2.0],
+    ['913055', 'Minchi Leaves', 1690, 0.026], ['915016', 'Tomatoes', 440, 0.510],
+    ['915005', 'Cabbage', 340, 0.192], ['914009', 'Cucumber', 130, 0.452],
+    ['914000', 'Ash Plantains', 210, 0.378], ['915006', 'Capsicum', 650, 0.146],
+    ['914036', 'Onion Leaves', 360, 0.070], ['914044', 'Ribbed Gourd', 360, 0.570],
+    ['915007', 'Carrot', 280, 0.378], ['913066', 'Salad Cucumber', 360, 0.420],
+    ['915008', 'Green Beans', 550, 0.122], ['914034', 'Nivithi', 210, 0.082],
+    ['914039', 'Pumpkin', 120, 0.246], ['914047', 'Snake Gourd', 240, 0.220],
+    ['914049', 'Sweet Potato', 210, 0.168]
+  ].forEach(([code, name, price, kg]) =>
+    cart.add({ code, name, pricing: 'weight', unitPrice: price, weightKg: kg }));
+
+  [
+    ['Harpic', 480, 1], ['Lifebuoy', 350, 1], ['Sunlight Matic', 600, 1],
+    ['Harischandra Noodles', 280, 1], ['Wijaya Chilli', 220, 1], ['Ahmad Tea', 680, 1],
+    ['Maliban Lemon Puff', 270, 1], ['Keells Pepper Powder', 210, 1],
+    ['Ambewela Milk', 140, 3], ['Polythene Bag', 5, 2]
+  ].forEach(([name, price, qty]) =>
+    cart.add({ name, pricing: 'unit', unitPrice: price, qty: qty }));
+
+  const t = cart.totals();
+  // The till's gross was 7,916.64; the app splits the two sugar packs and the
+  // two banana packs into their own lines, which rounds one cent differently.
+  assert.strictEqual(t.subtotal, 7916.63);
+
+  // The till then took Rs 443.00 of promotions off.
+  cart.setSettings({ discountAmount: 443 });
+  assert.strictEqual(cart.totals().total, 7473.63);
+});

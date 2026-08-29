@@ -51,23 +51,47 @@ same job.
 ### Scale labels
 
 Loose produce is weighed in-store and gets a printed sticker whose barcode
-carries the item and the weight. The sample labels in this repository decode as:
+carries the item and the weight. Verified against a full Keells shop - 36 camera
+scans reconciled line by line with the printed bill - the label is a **12-digit
+UPC-A**:
 
 ```
-9 2 3 0 1 0 | 1 | 0 1 2 1 8 | 8
-\__________/  |   \________/  |
-   item       |     weight    EAN-13 check digit
-   923010     |     1.218 kg
-              internal check digit
+9 2 3 0 1 0 | 0 1 2 1 8 | 7
+\__________/  \_________/  |
+   item        weight in   check digit
+   923010      grams
+               1.218 kg
 ```
 
 `923010` is Banana Seeni at Rs. 240.00/kg, so the line total is
-1.218 x 240.00 = **Rs. 292.32** - exactly what the sticker prints.
+1.218 x 240.00 = **Rs. 292.32** - exactly what the sticker and the till print.
 
-Shops encode these differently. Settings -> "Scale label format" lists the known
-layouts and lets you pin one, and the box underneath decodes any barcode you
-paste so you can check a new store's format in a few seconds. When more than one
-layout fits, the reading that agrees with the catalog price wins.
+Two things about this format matter in the code:
+
+- **The code must not be padded to EAN-13 before decoding.** A 12-digit UPC-A is
+  normally handled by prepending a zero, but that shifts the item code along by
+  one and the format disappears. The code is decoded as scanned first.
+- **There is no prefix to key off.** Produce reads `91xxxx`/`92xxxx`, but
+  grocery scale items are plain numbers padded to six digits - `004681` rice,
+  `021445` sugar, `015427` red kekulu. Length plus a valid check digit is what
+  identifies the format.
+
+Other stores encode these differently, so 13-digit layouts are kept as
+alternatives. Settings -> "Scale label format" lists them and lets you pin one,
+and the box underneath decodes any barcode you paste so you can check a new
+store's format in a few seconds. When more than one layout fits, the reading
+that agrees with the catalog price wins.
+
+Because the weight is part of the barcode, **every pack of the same product has
+a different code** - so the catalog is keyed by the six-digit item code, not by
+the whole barcode. Name a product once and the next pack of it, at any weight,
+prices itself.
+
+A misread is the one thing arithmetic cannot catch: a partial scan can produce a
+different but perfectly valid barcode. What gives it away is the weight - a
+sticker that decodes to 9.27 kg of ribbed gourd was not read correctly - so
+anything over 8 kg is flagged in the confirmation dialog rather than accepted
+quietly.
 
 ### When the barcode will not scan
 

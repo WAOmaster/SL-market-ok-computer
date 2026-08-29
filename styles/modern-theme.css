@@ -804,6 +804,33 @@ a:hover {
     display: none;
   }
 
+  /*
+   * Opened by the hamburger. Without this the menu had no open state at all:
+   * the toggle flipped a class that never restored `display`, so on a phone the
+   * navigation was unreachable and the only way through was desktop mode.
+   */
+  .navbar-nav.open {
+    display: flex;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    margin: 0;
+    padding: var(--space-2) 0;
+    background: var(--bg-card, #fff);
+    border-top: 1px solid var(--stone-200, #E7E5E4);
+    box-shadow: 0 12px 24px rgba(28, 25, 23, .12);
+    z-index: 60;
+  }
+
+  .navbar-nav.open .navbar-link {
+    display: block;
+    padding: var(--space-4) var(--space-6);
+  }
+
   .navbar-toggle {
     display: block;
   }

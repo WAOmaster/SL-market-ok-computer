@@ -62,6 +62,28 @@
    */
   const EMBEDDED_RULES = [
     {
+      /*
+       * Confirmed against a full Keells shop (36 camera scans reconciled line by
+       * line with the printed bill): the scale prints a 12-digit UPC-A of
+       *
+       *     ITEM(6) + NET WEIGHT IN GRAMS(5) + CHECK(1)
+       *
+       * e.g. 923010|01218|7 -> item 923010 (Banana Seeni), 1.218 kg.
+       *
+       * There is no prefix to key off: produce items read 91xxxx/92xxxx but
+       * grocery scale items are plain numbers padded to six digits (004681 rice,
+       * 021445 sugar, 015427 red kekulu), so length plus a valid check digit is
+       * what identifies the format.
+       */
+      id: 'sl-upc12-weight',
+      label: 'Keells scale label - 12 digit, weight in grams',
+      length: 12,
+      prefixes: null,
+      itemStart: 0, itemLength: 6,
+      valueStart: 6, valueLength: 5,
+      valueType: 'weight_g'
+    },
+    {
       // Confirmed against the sample labels: 923010|1|01218|8 = item 923010,
       // internal check digit 1, net weight 1.218 kg, EAN check digit 8.
       id: 'sl-weight-5',
@@ -107,8 +129,11 @@
    */
   function applyRule(code, rule) {
     const c = normalize(code);
-    if (c.length !== 13) return null;
-    if (!rule.prefixes.some(p => c.startsWith(p))) return null;
+    if (c.length !== (rule.length || 13)) return null;
+    // A rule without a prefix list applies to any code of the right length;
+    // the check digit and the plausibility of the weight are what qualify it.
+    if (rule.prefixes && !rule.prefixes.some(p => c.startsWith(p))) return null;
+    if (!isValidEan(c)) return null;
 
     const itemCode = c.substr(rule.itemStart, rule.itemLength);
     const rawValue = c.substr(rule.valueStart, rule.valueLength);
@@ -126,8 +151,15 @@
     if (rule.valueType === 'weight_g') {
       candidate.weightKg = round3(value / 1000);
       candidate.kind = 'weight';
-      // A 40kg+ "weight" on a hand-carried item means we picked the wrong layout.
-      if (candidate.weightKg > 40) return null;
+      // A hand-weighed pack, not a pallet: anything heavier means the layout is
+      // wrong or the camera stitched two barcodes together.
+      if (candidate.weightKg > 25) return null;
+      /*
+       * A misread of a scale label is still a valid barcode - the check digit
+       * cannot catch it - but it decodes to a weight nobody carries. Flag it so
+       * the shopper is warned before confirming rather than after paying.
+       */
+      if (candidate.weightKg > 8) candidate.unusualWeight = true;
     } else {
       candidate.totalPrice = round2(value / 100);
       candidate.kind = 'price';
@@ -205,10 +237,15 @@
     }
 
     result.valid = isValidEan(code);
-    const ean = result.ean13;
 
-    if (ean.length === 13) {
-      const candidates = decodeEmbedded(ean, opts);
+    /*
+     * Try the code exactly as the scanner reported it before padding a 12-digit
+     * UPC-A out to EAN-13: padding first would push a scale label's item code
+     * along by one and lose the format entirely.
+     */
+    const forms = code.length === 12 ? [code, result.ean13] : [result.ean13, code];
+    for (const form of forms) {
+      const candidates = decodeEmbedded(form, opts);
       if (candidates.length) {
         result.type = 'embedded';
         result.candidates = candidates;
@@ -218,8 +255,8 @@
       }
     }
 
-    result.type = ean.length === 8 ? 'ean8' : 'retail';
-    result.itemCode = ean;
+    result.type = result.ean13.length === 8 ? 'ean8' : 'retail';
+    result.itemCode = result.ean13;
     return result;
   }
 

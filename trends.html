@@ -204,7 +204,7 @@
                 <span>SL Market Prices</span>
             </a>
 
-            <button class="navbar-toggle" aria-label="Toggle navigation menu" id="navToggle">
+            <button class="navbar-toggle" aria-label="Toggle navigation menu" aria-controls="navMenu" aria-expanded="false" id="navToggle">
                 ☰
             </button>
 
@@ -465,8 +465,10 @@
             document.getElementById('downloadChart').addEventListener('click', downloadChart);
 
             // Mobile nav toggle
-            document.getElementById('navToggle').addEventListener('click', () => {
-                document.getElementById('navMenu').classList.toggle('hidden');
+            document.getElementById('navToggle').addEventListener('click', (event) => {
+                const menu = document.getElementById('navMenu');
+                const isOpen = menu.classList.toggle('open');
+                event.currentTarget.setAttribute('aria-expanded', String(isOpen));
             });
         }
 

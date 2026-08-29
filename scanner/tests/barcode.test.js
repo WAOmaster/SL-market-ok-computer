@@ -56,6 +56,66 @@ test('the sample labels all reproduce their printed totals', () => {
   });
 });
 
+/*
+ * The decisive cases: 36 camera scans from one Keells shop, reconciled against
+ * the printed bill. The scale prints a 12-digit UPC-A, not the 13-digit EAN the
+ * label photographs suggested.
+ */
+test('the real Keells scale labels decode to the weights the till charged', () => {
+  const samples = [
+    { code: '923010012187', item: '923010', weight: 1.218, price: 240.00, till: 292.32 },
+    { code: '923010004021', item: '923010', weight: 0.402, price: 240.00, till: 96.48 },
+    { code: '915013018044', item: '915013', weight: 1.804, price: 390.00, till: 703.56 },
+    { code: '914005023806', item: '914005', weight: 2.380, price: 380.00, till: 904.40 },
+    { code: '914047002203', item: '914047', weight: 0.220, price: 240.00, till: 52.80 },
+    { code: '913055000263', item: '913055', weight: 0.026, price: 1690.00, till: 43.94 },
+    { code: '914034000823', item: '914034', weight: 0.082, price: 210.00, till: 17.22 },
+    { code: '915016005102', item: '915016', weight: 0.510, price: 440.00, till: 224.40 },
+    // Grocery scale items carry no 91/92 prefix - their item code is padded.
+    { code: '004681010068', item: '004681', weight: 1.006, price: 240.00, till: 241.44 },
+    { code: '015427005644', item: '015427', weight: 0.564, price: 240.00, till: 135.36 },
+    { code: '021445011666', item: '021445', weight: 1.166, price: 212.00, till: 247.19 }
+  ];
+
+  samples.forEach(s => {
+    const parsed = barcode.parse(s.code, { catalogUnitPrice: s.price });
+    assert.strictEqual(parsed.type, 'embedded', s.code + ' type');
+    assert.strictEqual(parsed.valid, true, s.code + ' check digit');
+    assert.strictEqual(parsed.itemCode, s.item, s.code + ' item code');
+    assert.strictEqual(parsed.best.weightKg, s.weight, s.code + ' weight');
+    assert.strictEqual(barcode.round2(s.weight * s.price), s.till, s.code + ' line total');
+  });
+});
+
+test('a 12-digit label is not padded to EAN-13 before it is decoded', () => {
+  // Padding first shifts the item code along by one and loses the format.
+  const parsed = barcode.parse('923010012187');
+  assert.strictEqual(parsed.itemCode, '923010');
+  assert.notStrictEqual(parsed.itemCode, '092301');
+});
+
+test('a Sri Lankan product barcode stays a retail code', () => {
+  ['4792037107741', '4792116211109', '4791034017015', '4796033940166'].forEach(code => {
+    const parsed = barcode.parse(code);
+    assert.strictEqual(parsed.type, 'retail', code);
+    assert.strictEqual(parsed.itemCode, code, code);
+  });
+});
+
+test('a camera misread decodes to a weight nobody carries, and is flagged', () => {
+  // Both are valid barcodes, so no check digit can reject them; the weight can.
+  const gourd = barcode.parse('541400092702');
+  assert.strictEqual(gourd.best.weightKg, 9.27);
+  assert.strictEqual(gourd.best.unusualWeight, true);
+
+  const rice = barcode.parse('544446141007');
+  assert.strictEqual(rice.best.weightKg, 14.1);
+  assert.strictEqual(rice.best.unusualWeight, true);
+
+  // A real pack is not flagged.
+  assert.strictEqual(barcode.parse('914005023806').best.unusualWeight, undefined);
+});
+
 test('a plain retail barcode is not treated as a weighed label', () => {
   const parsed = barcode.parse('4006381333931');
   assert.strictEqual(parsed.type, 'retail');

@@ -22,20 +22,43 @@
    * the barcode; `pricing: 'unit'` items are counted.
    */
   const SEED = [
+    /*
+     * Verified against a Keells bill (Panadura, 29-08-2026): the codes are the
+     * six-digit item codes the scale prints inside the label barcode, and the
+     * prices are what the till charged. Packaged goods are keyed by their own
+     * EAN-13.
+     */
     { code: '923010', name: 'Banana - Seeni', unitPrice: 240.00, pricing: 'weight', unit: 'kg', category: 'Fruit' },
-    { code: '915013', name: 'Potatoes', unitPrice: 390.00, pricing: 'weight', unit: 'kg', category: 'Vegetable' },
+    { code: '923063', name: 'Melon - Red Fantasy', unitPrice: 80.00, pricing: 'weight', unit: 'kg', category: 'Fruit' },
+    { code: '914005', name: 'Pre-packed Big Onions', unitPrice: 380.00, pricing: 'weight', unit: 'kg', category: 'Vegetable' },
+    { code: '914000', name: 'Ash Plantains', unitPrice: 210.00, pricing: 'weight', unit: 'kg', category: 'Vegetable' },
+    { code: '914009', name: 'Cucumber', unitPrice: 130.00, pricing: 'weight', unit: 'kg', category: 'Vegetable' },
+    { code: '914014', name: 'Garlic', unitPrice: 890.00, pricing: 'weight', unit: 'kg', category: 'Vegetable' },
+    { code: '914034', name: 'Nivithi', unitPrice: 210.00, pricing: 'weight', unit: 'kg', category: 'Vegetable' },
+    { code: '914036', name: 'Onion Leaves', unitPrice: 360.00, pricing: 'weight', unit: 'kg', category: 'Vegetable' },
+    { code: '914039', name: 'Pumpkin', unitPrice: 120.00, pricing: 'weight', unit: 'kg', category: 'Vegetable' },
+    { code: '914044', name: 'Ribbed Gourd', unitPrice: 360.00, pricing: 'weight', unit: 'kg', category: 'Vegetable' },
     { code: '914047', name: 'Snake Gourd', unitPrice: 240.00, pricing: 'weight', unit: 'kg', category: 'Vegetable' },
-    { code: '914005', name: 'Onions Big (pre-packed)', unitPrice: 380.00, pricing: 'weight', unit: 'kg', category: 'Vegetable' },
-    { code: '914004', name: 'Onions Big', unitPrice: 380.00, pricing: 'weight', unit: 'kg', category: 'Vegetable' },
-    { code: '914010', name: 'Carrot', unitPrice: 690.00, pricing: 'weight', unit: 'kg', category: 'Vegetable' },
-    { code: '914021', name: 'Tomato', unitPrice: 480.00, pricing: 'weight', unit: 'kg', category: 'Vegetable' },
-    { code: '914033', name: 'Cabbage', unitPrice: 360.00, pricing: 'weight', unit: 'kg', category: 'Vegetable' },
-    { code: '914052', name: 'Brinjal', unitPrice: 420.00, pricing: 'weight', unit: 'kg', category: 'Vegetable' },
-    { code: '914060', name: 'Manioc', unitPrice: 320.00, pricing: 'weight', unit: 'kg', category: 'Vegetable' },
-    { code: '923004', name: 'Banana - Ambul', unitPrice: 420.00, pricing: 'weight', unit: 'kg', category: 'Fruit' },
-    { code: '922010', name: 'Red Kekulu Samba Rice 1kg', unitPrice: 285.00, pricing: 'unit', unit: 'pack', category: 'Grocery' },
-    { code: '4011', name: 'Banana (PLU 4011)', unitPrice: 380.00, pricing: 'weight', unit: 'kg', category: 'Fruit' },
-    { code: '4072', name: 'Green Chilli (PLU 4072)', unitPrice: 950.00, pricing: 'weight', unit: 'kg', category: 'Vegetable' }
+    { code: '914049', name: 'Sweet Potato', unitPrice: 210.00, pricing: 'weight', unit: 'kg', category: 'Vegetable' },
+    { code: '913055', name: 'Minchi Leaves', unitPrice: 1690.00, pricing: 'weight', unit: 'kg', category: 'Vegetable' },
+    { code: '913066', name: 'Salad Cucumber', unitPrice: 360.00, pricing: 'weight', unit: 'kg', category: 'Vegetable' },
+    { code: '915005', name: 'Cabbage', unitPrice: 340.00, pricing: 'weight', unit: 'kg', category: 'Vegetable' },
+    { code: '915006', name: 'Capsicum', unitPrice: 650.00, pricing: 'weight', unit: 'kg', category: 'Vegetable' },
+    { code: '915007', name: 'Carrot', unitPrice: 280.00, pricing: 'weight', unit: 'kg', category: 'Vegetable' },
+    { code: '915008', name: 'Green Beans', unitPrice: 550.00, pricing: 'weight', unit: 'kg', category: 'Vegetable' },
+    { code: '915013', name: 'Potatoes', unitPrice: 390.00, pricing: 'weight', unit: 'kg', category: 'Vegetable' },
+    { code: '915016', name: 'Tomatoes', unitPrice: 440.00, pricing: 'weight', unit: 'kg', category: 'Vegetable' },
+    { code: '004681', name: 'Rice - Samba Bulk', unitPrice: 240.00, pricing: 'weight', unit: 'kg', category: 'Grocery' },
+    { code: '015427', name: 'Rice - Red Kekulu Samba Bulk', unitPrice: 240.00, pricing: 'weight', unit: 'kg', category: 'Grocery' },
+    { code: '021445', name: 'White Sugar Bulk', unitPrice: 212.00, pricing: 'weight', unit: 'kg', category: 'Grocery' },
+    { code: '4792037107741', name: 'Harpic Power Plus 10X 500ml', unitPrice: 480.00, pricing: 'unit', unit: 'pc', category: 'Household' },
+    { code: '4792081018024', name: 'Lifebuoy Handwash Total 180ml', unitPrice: 350.00, pricing: 'unit', unit: 'pc', category: 'Household' },
+    { code: '4792081044740', name: 'Sunlight Matic Liquid 1L', unitPrice: 600.00, pricing: 'unit', unit: 'pc', category: 'Household' },
+    { code: '4792083010118', name: 'Harischandra Plain Noodles 400g', unitPrice: 280.00, pricing: 'unit', unit: 'pc', category: 'Grocery' },
+    { code: '4792173000012', name: 'Wijaya Chilli Pieces 100g', unitPrice: 220.00, pricing: 'unit', unit: 'pc', category: 'Grocery' },
+    { code: '4791034017015', name: 'Maliban Lemon Puff 200g', unitPrice: 270.00, pricing: 'unit', unit: 'pc', category: 'Bakery' },
+    { code: '4796033940166', name: 'Keells Pepper Powder 50g', unitPrice: 210.00, pricing: 'unit', unit: 'pc', category: 'Grocery' },
+    { code: '4792116211109', name: 'Ambewela Full Cream UHT Milk 200ml', unitPrice: 140.00, pricing: 'unit', unit: 'pc', category: 'Dairy' }
   ];
 
   let cache = null;
@@ -109,7 +132,7 @@
       ? codeOrParsed
       : barcode.parse(codeOrParsed);
 
-    const attempts = [parsed.itemCode, parsed.ean13, parsed.code];
+    const attempts = [parsed.code, parsed.ean13, parsed.itemCode];
     if (parsed.candidates) parsed.candidates.forEach(c => attempts.push(c.itemCode));
     if (parsed.ean13 && parsed.ean13.charAt(0) === '0') attempts.push(parsed.ean13.slice(1));
 

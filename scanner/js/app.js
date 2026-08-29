@@ -322,6 +322,7 @@
         barcode: parsed.ean13,
         pricing: parsed.best && parsed.best.kind === 'weight' ? 'weight' : 'unit',
         weightKg: parsed.best && parsed.best.weightKg ? parsed.best.weightKg : 0,
+        unusualWeight: !!(parsed.best && parsed.best.unusualWeight),
         priceOverride: parsed.best && parsed.best.kind === 'price' ? parsed.best.totalPrice : null,
         source: source
       });
@@ -382,7 +383,11 @@
 
     $('#itemDialogTitle').textContent = dialogContext.name ? 'Check this item' : 'New item';
     $('#itemDialogHint').textContent = dialogContext.code
-      ? 'Code ' + dialogContext.code + (dialogContext.weightKg ? ' - ' + dialogContext.weightKg.toFixed(3) + ' kg from the barcode' : '')
+      ? 'Code ' + dialogContext.code +
+        (dialogContext.weightKg ? ' - ' + dialogContext.weightKg.toFixed(3) + ' kg from the barcode' : '') +
+        (dialogContext.unusualWeight
+          ? '. That weight looks wrong for a hand-carried pack - the camera may have misread the label, so check it against the sticker.'
+          : '')
       : 'Not everything has a barcode - add it by hand.';
 
     $('#dName').value = dialogContext.name || '';
