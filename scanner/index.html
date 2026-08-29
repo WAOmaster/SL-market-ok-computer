@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1A4D2E">
+<meta name="description" content="Scan supermarket barcodes and shelf labels, count what is in the trolley and see the running total before you reach the till.">
+<title>Cart Scan - Supermarket Scanner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="scanner.css">
+</head>
+<body>
+
+<header class="app-header">
+  <div class="row">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">&#128722;</span>
+      <span>Cart Scan<small id="storeLabel">Supermarket scanner</small></span>
+    </div>
+    <div class="header-total">
+      <div class="label">Running total</div>
+      <div class="value" id="headerTotal">Rs. 0.00</div>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist" aria-label="Sections">
+  <button class="tab" role="tab" id="tab-scan" aria-selected="true" aria-controls="view-scan">
+    <span class="icon" aria-hidden="true">&#128247;</span>Scan
+  </button>
+  <button class="tab" role="tab" id="tab-cart" aria-selected="false" aria-controls="view-cart">
+    <span class="icon" aria-hidden="true">&#129530;</span>Cart
+    <span class="badge" id="cartBadge" hidden></span>
+  </button>
+  <button class="tab" role="tab" id="tab-catalog" aria-selected="false" aria-controls="view-catalog">
+    <span class="icon" aria-hidden="true">&#127991;</span>Catalog
+  </button>
+  <button class="tab" role="tab" id="tab-settings" aria-selected="false" aria-controls="view-settings">
+    <span class="icon" aria-hidden="true">&#9881;</span>Settings
+  </button>
+</nav>
+
+<main>
+
+  <!-- ============ SCAN ============ -->
+  <section class="view" id="view-scan" role="tabpanel" aria-labelledby="tab-scan">
+    <div class="split">
+      <div class="card">
+        <h2>Scan an item</h2>
+        <p class="hint">Point the camera at the barcode on the packet or at the sticker the scale prints for loose produce. Weighed items are priced from the weight in the barcode; packets are counted.</p>
+
+        <div class="viewfinder" id="viewfinder">
+          <video id="video" playsinline muted></video>
+          <div class="reticle" aria-hidden="true"></div>
+          <div class="placeholder">
+            <span class="big" aria-hidden="true">&#128248;</span>
+            Camera is off.<br>Start it, or scan a photo of the label.
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn primary" id="btnCamera">Start camera</button>
+          <button class="btn" id="btnTorch" hidden>Torch</button>
+          <button class="btn" id="btnPhoto">Scan a photo</button>
+          <button class="btn" id="btnReadLabel">Read label text</button>
+        </div>
+
+        <input type="file" id="filePhoto" accept="image/*" capture="environment" class="visually-hidden">
+        <input type="file" id="fileLabel" accept="image/*" capture="environment" class="visually-hidden">
+
+        <div class="status" id="scanStatus">Ready. Camera, photo or keyed-in code - all three add to the same cart.</div>
+      </div>
+
+      <div class="card">
+        <h2>Type a code</h2>
+        <p class="hint">Barcode number, or the 4-5 digit PLU for loose produce.</p>
+        <form class="inline-form" id="manualForm">
+          <input type="text" id="manualCode" inputmode="numeric" autocomplete="off" placeholder="e.g. 9230101012188">
+          <button class="btn primary" type="submit">Add</button>
+        </form>
+
+        <div class="btn-row">
+          <button class="btn small ghost" id="btnAddFree">Add an item without a barcode</button>
+        </div>
+
+        <h2 style="margin-top:18px">Last scans</h2>
+        <div class="lines" id="recentScans">
+          <div class="empty"><span class="big" aria-hidden="true">&#128203;</span>Nothing scanned yet.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CART ============ -->
+  <section class="view" id="view-cart" role="tabpanel" aria-labelledby="tab-cart" hidden>
+    <div class="split">
+      <div class="card">
+        <h2>Trolley</h2>
+        <p class="hint">Tap the stepper to change a count, edit a weight, or type the price straight off the label if it disagrees.</p>
+        <div class="lines" id="cartLines"></div>
+      </div>
+
+      <div class="card">
+        <h2>Total</h2>
+        <div class="totals" id="totalsPanel"></div>
+        <div class="chip-row" id="categoryChips"></div>
+        <div class="btn-row">
+          <button class="btn primary wide" id="btnPrint">Print / save receipt</button>
+        </div>
+        <div class="btn-row">
+          <button class="btn" id="btnCSV">Export CSV</button>
+          <button class="btn" id="btnJSON">Download JSON</button>
+          <button class="btn" id="btnCopyJSON">Copy JSON</button>
+          <button class="btn danger" id="btnClear">Clear cart</button>
+        </div>
+        <div class="status" id="exportStatus" hidden></div>
+
+        <h2 style="margin-top:18px">Check against the till</h2>
+        <p class="hint">After paying, type the total the till charged. The exported JSON then carries the difference, line by line, so a mismatch can be traced.</p>
+        <label class="field">Till receipt total (Rs.)
+          <input type="number" id="setTill" min="0" step="0.01" placeholder="0.00">
+        </label>
+        <div class="status" id="billStatus" hidden></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CATALOG ============ -->
+  <section class="view" id="view-catalog" role="tabpanel" aria-labelledby="tab-catalog" hidden>
+    <div class="split">
+      <div class="card">
+        <h2>Known products</h2>
+        <p class="hint">Every code you name once is recognised and priced automatically the next time you scan it.</p>
+        <label class="field">Search
+          <input type="search" id="catalogSearch" placeholder="Name, code or category">
+        </label>
+        <div class="catalog-list" id="catalogList"></div>
+      </div>
+
+      <div class="card">
+        <h2>Add or update a product</h2>
+        <form id="catalogForm" class="view" style="gap:12px">
+          <label class="field">Code (barcode or item code)
+            <input type="text" id="pCode" inputmode="numeric" required placeholder="923010">
+          </label>
+          <label class="field">Name
+            <input type="text" id="pName" required placeholder="Banana - Seeni">
+          </label>
+          <div class="grid-2">
+            <label class="field">Priced by
+              <select id="pPricing">
+                <option value="unit">Each / pack</option>
+                <option value="weight">Weight (per kg)</option>
+              </select>
+            </label>
+            <label class="field">Price (Rs.)
+              <input type="number" id="pPrice" min="0" step="0.01" required placeholder="240.00">
+            </label>
+          </div>
+          <label class="field">Category
+            <input type="text" id="pCategory" placeholder="Vegetable" list="categoryOptions">
+          </label>
+          <datalist id="categoryOptions">
+            <option value="Vegetable"></option>
+            <option value="Fruit"></option>
+            <option value="Grocery"></option>
+            <option value="Dairy"></option>
+            <option value="Meat &amp; Fish"></option>
+            <option value="Bakery"></option>
+            <option value="Household"></option>
+            <option value="Other"></option>
+          </datalist>
+          <button class="btn primary wide" type="submit">Save product</button>
+        </form>
+
+        <div class="btn-row">
+          <button class="btn" id="btnCatalogExport">Export catalog</button>
+          <button class="btn" id="btnCatalogImport">Import catalog</button>
+          <button class="btn danger" id="btnCatalogReset">Reset to defaults</button>
+        </div>
+        <input type="file" id="fileCatalog" accept="application/json,.json" class="visually-hidden">
+        <div class="status" id="catalogStatus" hidden></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SETTINGS ============ -->
+  <section class="view" id="view-settings" role="tabpanel" aria-labelledby="tab-settings" hidden>
+    <div class="split">
+      <div class="card">
+        <h2>This shopping trip</h2>
+        <label class="field">Store
+          <input type="text" id="setStore" placeholder="Keells - Nugegoda">
+        </label>
+        <div class="status" id="storeChain"></div>
+        <div class="grid-3" style="margin-top:12px">
+          <label class="field">Budget (Rs.)
+            <input type="number" id="setBudget" min="0" step="10" placeholder="0">
+          </label>
+          <label class="field">Discount (%)
+            <input type="number" id="setDiscountPercent" min="0" max="100" step="0.5" placeholder="0">
+          </label>
+          <label class="field">Discount (Rs.)
+            <input type="number" id="setDiscountAmount" min="0" step="1" placeholder="0">
+          </label>
+          <label class="field">Tax added at till (%)
+            <input type="number" id="setTax" min="0" max="100" step="0.5" placeholder="0">
+          </label>
+        </div>
+        <p class="hint" style="margin-top:10px">Shelf prices in Sri Lankan supermarkets normally include VAT, so leave tax at 0 unless your receipt adds it separately.</p>
+        <label class="switch" style="margin-top:6px">
+          <input type="checkbox" id="setMerge" checked>
+          Scanning the same packet again adds to its count
+        </label>
+      </div>
+
+      <div class="card">
+        <h2>Scanning</h2>
+        <label class="field">Scale label format
+          <select id="setRule"></select>
+        </label>
+        <p class="hint" style="margin-top:8px">Shops encode weighed items differently. The default matches the Keells-style labels shown in the sample photos (<code>92|3010|1|01218|8</code> = item 923010, 1.218&nbsp;kg). Paste a label barcode below to check.</p>
+        <label class="field">Test a barcode
+          <input type="text" id="setTest" inputmode="numeric" placeholder="9230101012188">
+        </label>
+        <div class="status" id="setTestOut" hidden></div>
+
+        <h2 style="margin-top:18px">Backend sync (optional)</h2>
+        <p class="hint">Leave blank to stay fully offline. With the SL Market API running, the catalog and finished trips are saved to it.</p>
+        <label class="field">API base URL
+          <input type="text" id="setApi" placeholder="http://localhost:8000">
+        </label>
+        <div class="btn-row">
+          <button class="btn" id="btnApiTest">Test connection</button>
+          <button class="btn" id="btnApiPush">Save this trip to the API</button>
+        </div>
+        <div class="status" id="apiStatus" hidden></div>
+
+        <h2 style="margin-top:18px">Label formats learned</h2>
+        <p class="hint">Set the store name before you start. At a supermarket the app has not seen, confirm the first weighed item by hand and its label format is worked out from the code and the weight you typed - every later label there decodes on its own.</p>
+        <div class="catalog-list" id="learnedRules"></div>
+
+        <h2 style="margin-top:18px">Scan log</h2>
+        <p class="hint">Every scan is recorded - the raw code, how it decoded, which layout won, and whether it made it into the cart. Rejected scans are kept too; they are the ones worth reading after a test run. The log travels inside the exported JSON.</p>
+        <div class="status" id="logStatus"></div>
+        <label class="switch" style="margin-top:8px">
+          <input type="checkbox" id="setKeepOcrText">
+          Keep the raw OCR text of each label read
+        </label>
+        <div class="btn-row">
+          <button class="btn danger" id="btnClearLog">Clear scan log</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- item editor for unknown codes and free-typed items -->
+<dialog id="itemDialog">
+  <form method="dialog" class="dialog-body" id="itemForm">
+    <h3 id="itemDialogTitle">New item</h3>
+    <p class="hint" id="itemDialogHint" style="margin:0"></p>
+    <label class="field">Product name
+      <input type="text" id="dName" required>
+    </label>
+    <div class="grid-2">
+      <label class="field">Priced by
+        <select id="dPricing">
+          <option value="unit">Each / pack</option>
+          <option value="weight">Weight (per kg)</option>
+        </select>
+      </label>
+      <label class="field" id="dPriceWrap">Price (Rs.)
+        <input type="number" id="dPrice" min="0" step="0.01" required>
+      </label>
+    </div>
+    <div class="grid-2">
+      <label class="field" id="dQtyWrap">Count
+        <input type="number" id="dQty" min="1" step="1" value="1">
+      </label>
+      <label class="field" id="dWeightWrap" hidden>Weight (kg)
+        <input type="number" id="dWeight" min="0" step="0.001">
+      </label>
+    </div>
+    <label class="field">Category
+      <input type="text" id="dCategory" list="categoryOptions" value="Other">
+    </label>
+    <label class="switch">
+      <input type="checkbox" id="dRemember" checked>
+      Remember this code in the catalog
+    </label>
+    <div class="btn-row" style="margin-top:4px">
+      <button class="btn primary" value="add" id="dSubmit">Add to cart</button>
+      <button class="btn ghost" value="cancel" formnovalidate>Cancel</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- printable receipt -->
+<div class="receipt" id="receipt"></div>
+
+<script src="js/barcode.js"></script>
+<script src="js/catalog.js"></script>
+<script src="js/stores.js"></script>
+<script src="js/cart.js"></script>
+<script src="js/scanlog.js"></script>
+<script src="js/label.js"></script>
+<script src="js/scanner.js"></script>
+<script src="js/report.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

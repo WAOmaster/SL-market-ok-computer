@@ -150,3 +150,71 @@ class ShoppingListItem(Base):
     # Relationships
     shopping_list = relationship("ShoppingList", back_populates="items")
     produce = relationship("ProduceItem", back_populates="shopping_list_items")
+
+
+class ScannerProduct(Base):
+    """
+    A code the scanner app knows how to price.
+
+    `code` is whatever identifies the item on the shelf: a full EAN-13 for a
+    packet, or the item code embedded in a scale label for loose produce
+    (923010 = Banana Seeni). Devices share this table so a product named on one
+    phone is recognised on every other.
+    """
+
+    __tablename__ = "scanner_products"
+
+    id = Column(Integer, primary_key=True, index=True)
+    code = Column(String(32), nullable=False, unique=True, index=True)
+    name = Column(String(255), nullable=False)
+    unit_price = Column(Float, nullable=False, default=0.0)
+    # "unit" = counted, "weight" = priced per kilogram
+    pricing = Column(String(16), nullable=False, default="unit")
+    unit = Column(String(16), nullable=False, default="pc")
+    category = Column(String(100), nullable=True, default="Other")
+    produce_item_id = Column(Integer, ForeignKey("produce_items.id"), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+
+class ScanSession(Base):
+    """One shopping trip: everything scanned into the trolley, and its total."""
+
+    __tablename__ = "scan_sessions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    client_id = Column(String(64), nullable=True, index=True)
+    store = Column(String(255), nullable=True)
+    currency = Column(String(8), nullable=False, default="Rs.")
+    subtotal = Column(Float, nullable=False, default=0.0)
+    discount = Column(Float, nullable=False, default=0.0)
+    tax = Column(Float, nullable=False, default=0.0)
+    total = Column(Float, nullable=False, default=0.0)
+    item_count = Column(Integer, nullable=False, default=0)
+    started_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    items = relationship(
+        "ScanSessionItem", back_populates="session", cascade="all, delete-orphan"
+    )
+
+
+class ScanSessionItem(Base):
+    """A single line of a scanned trip."""
+
+    __tablename__ = "scan_session_items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    session_id = Column(Integer, ForeignKey("scan_sessions.id"), nullable=False)
+    code = Column(String(32), nullable=True, index=True)
+    barcode = Column(String(32), nullable=True)
+    name = Column(String(255), nullable=False)
+    category = Column(String(100), nullable=True)
+    pricing = Column(String(16), nullable=False, default="unit")
+    quantity = Column(Integer, nullable=False, default=1)
+    weight_kg = Column(Float, nullable=False, default=0.0)
+    unit_price = Column(Float, nullable=False, default=0.0)
+    line_total = Column(Float, nullable=False, default=0.0)
+    source = Column(String(16), nullable=True)
+
+    session = relationship("ScanSession", back_populates="items")
