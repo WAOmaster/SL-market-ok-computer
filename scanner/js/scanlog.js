@@ -37,7 +37,12 @@
 
   function storage() {
     try {
-      if (typeof localStorage !== 'undefined') return localStorage;
+      if (typeof localStorage === 'undefined' || !localStorage) return null;
+      // Node ships a localStorage that exists but throws unless it is given a
+      // backing file, and some embedded browsers ship a similar stub. Existing
+      // is not the same as working.
+      if (typeof localStorage.setItem !== 'function') return null;
+      return localStorage;
     } catch (err) { /* private mode */ }
     return null;
   }
