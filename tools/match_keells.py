@@ -199,6 +199,13 @@ def match(barcodes, catalogue, threshold=0.62):
             'confidence': round(best_score, 3),
             'scannedName': p['name'],
         }
+        # Carry the promotion through. `price` is already what the till will
+        # charge, so this is not needed to be correct - it is needed for the
+        # shopper to SEE they are getting a deal, which is half of why anyone
+        # checks a price in the aisle.
+        for extra in ('wasPrice', 'discount', 'offers'):
+            if item.get(extra):
+                out[p['code']][extra] = item[extra]
 
 
     return flag_collisions(out, stats)
@@ -234,12 +241,21 @@ def load_catalogues(paths):
     """
     Merge catalogues, earliest wins.
 
-    Order is the point. The hand-built fixture holds prices read off a till
-    receipt and off shelf tickets in the store; the scrape holds what the
-    website lists. They disagree - the site showed Sunlight Matic at Rs 625
-    while both the bill and the shelf ticket said Rs 600 - and the shelf is
-    what the shopper is standing in front of. So a verified row is never
-    overwritten by a scraped one; the scrape only fills what nobody has seen.
+    Order is the point, and the right order is FRESHEST FIRST.
+
+    Put the live catalogue ahead of the hand-built fixture. Both are true, but
+    they answer different questions: the fixture holds a bill's LINE price,
+    which is gross, while the live endpoint knows the promotion running today.
+    Maliban Lemon Puff bills at 270 and then has 68 taken off it further down
+    the receipt as a Nexus discount - 202 is what the card was charged, and 202
+    is what a shopper wants to see in the aisle.
+
+    The fixture still earns its place behind it. Item 128519 is not in the
+    sitemap at all, so without the shelf ticket that product would have no
+    price from any source.
+
+    Checked both ways against eight products photographed or billed in store:
+    freshest-first agrees with all eight, fixture-first with six.
     """
     merged, sources, captured = {}, [], ''
     for path in paths:
@@ -275,6 +291,9 @@ def main(barcodes_path, catalogue_path, out_path):
             'price': round(float(it.get('price') or 0), 2),
             'uom': it.get('uom', 'NO'),
         }
+        for extra in ('wasPrice', 'discount', 'offers'):
+            if it.get(extra):
+                row[extra] = it[extra]
         # Keep a row even with no price. A ticket for it can then say
         # "KEELLS TURMERIC POWDER 100G - price not known yet" instead of
         # "unknown item code", which is the difference between a named line the

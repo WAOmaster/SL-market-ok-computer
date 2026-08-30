@@ -89,6 +89,7 @@ def fetch_one(code):
         'uom': 'KG' if detail.get('uom') == 'KG' else 'NO',
         'category': detail.get('categoryCode') or '',
         'available': bool(detail.get('isAvailable', True)),
+        'checkedAt': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
     }
     if discount > 0:
         row['wasPrice'] = round(listed, 2)
@@ -133,7 +134,37 @@ def main(argv):
 
     codes = [str(i['itemCode']) for i in load_json(src, {'items': []})['items']]
     have = {r['itemCode']: r for r in load_json(out, {'items': []})['items']}
+
+    budget = 0
+    for arg in argv:
+        if arg.startswith('--refresh='):
+            budget = int(arg.split('=', 1)[1])
+
     todo = [c for c in codes if c not in have]
+
+    if budget:
+        """
+        A nightly top-up rather than a re-scrape.
+
+        Prices only move when a promotion starts or ends, so the whole
+        catalogue does not need asking every day. Two groups get re-checked:
+
+          - anything currently ON promotion, because those expire and would
+            otherwise leave the app quoting a discount that has finished
+          - the least recently checked rows, up to the budget, so everything
+            comes round on a rotation
+
+        On a ~6,000 product catalogue with a 1,200 budget that is a few
+        minutes of gentle traffic and every price is no more than about a week
+        old.
+        """
+        promo = [c for c, r in have.items() if r.get('discount')]
+        stale = sorted((r.get('checkedAt', ''), c) for c, r in have.items()
+                       if c not in set(promo))
+        recheck = promo + [c for _, c in stale[:max(0, budget - len(promo))]]
+        todo = todo + recheck
+        print(f'refresh: {len(promo)} on promotion, '
+              f'{len(recheck) - len(promo)} oldest, {len(todo)} total to fetch')
 
     print(f'{len(codes)} item codes, {len(have)} already priced, {len(todo)} to fetch')
     if not todo:

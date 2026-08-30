@@ -178,7 +178,12 @@
         storeName: p.name || '',
         ambiguous: !!p.ambiguous,
         matchMethod: p.method || '',
-        matchConfidence: p.confidence
+        matchConfidence: p.confidence,
+        // What the price was before the promotion, when one is running. The
+        // price above is already the discounted one, so this exists purely so
+        // the shopper can see the saving rather than just pay less.
+        wasPrice: p.wasPrice ? Number(p.wasPrice) : null,
+        offers: p.offers || null
       });
     }
     return null;

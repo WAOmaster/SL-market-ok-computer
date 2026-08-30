@@ -148,9 +148,13 @@
 
   function lineHTML(item) {
     const isWeight = item.pricing === 'weight';
+    const saving = item.wasPrice && item.wasPrice > item.unitPrice
+      ? item.wasPrice - item.unitPrice : 0;
     const pills = [
       isWeight ? '<span class="pill weight">per kg</span>' : '',
-      item.priceOverride != null ? '<span class="pill override">label price</span>' : ''
+      item.priceOverride != null ? '<span class="pill override">label price</span>' : '',
+      // A promotion the shopper would otherwise only discover at the till.
+      saving ? '<span class="pill deal">was ' + money(item.wasPrice) + '</span>' : ''
     ].join('');
 
     const measure = isWeight
@@ -624,6 +628,9 @@
       pricing: product.pricing,
       unit: product.unit,
       unitPrice: product.unitPrice,
+      // Carried so the line can show "was Rs 790" when Keells has a promotion
+      // running. unitPrice is already the discounted one.
+      wasPrice: product.wasPrice || null,
       qty: 1,
       weightKg: 0,
       source: source

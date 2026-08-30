@@ -609,3 +609,10 @@ dialog h3 { margin: 0; font-size: 1.05rem; }
   color: #8A5A00;
   font-weight: 600;
 }
+
+/* A live promotion. Green because it is good news, and quiet because the
+   price beside it has already been discounted - this only explains why. */
+.pill.deal {
+  background: #E7F5EA;
+  color: #1B6B33;
+}

@@ -100,6 +100,9 @@
       // Where the name came from: 'catalog' (verified against a bill),
       // 'barcodes' (the offline table), or '' when the shopper typed it.
       nameSource: raw.nameSource || '',
+      // The pre-promotion price, when Keells is running one. Display only -
+      // unitPrice is already what the till will charge.
+      wasPrice: raw.wasPrice == null ? null : Number(raw.wasPrice),
       priceOverride: raw.priceOverride == null ? null : Number(raw.priceOverride),
       addedAt: raw.addedAt || new Date().toISOString()
     };

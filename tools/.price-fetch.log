@@ -1,0 +1,56 @@
+10362 item codes, 0 already priced, 10362 to fetch
+4 at a time, 0.25s apart, outlet SCDR
+
+     200/10362  priced    104  ~15 min left
+     400/10362  priced    237  ~15 min left
+     600/10362  priced    360  ~15 min left
+     800/10362  priced    451  ~15 min left
+    1000/10362  priced    548  ~14 min left
+    1200/10362  priced    645  ~14 min left
+    1400/10362  priced    754  ~14 min left
+    1600/10362  priced    846  ~13 min left
+    1800/10362  priced    924  ~13 min left
+    2000/10362  priced   1020  ~13 min left
+    2200/10362  priced   1117  ~13 min left
+    2400/10362  priced   1200  ~13 min left
+    2600/10362  priced   1263  ~12 min left
+    2800/10362  priced   1326  ~12 min left
+    3000/10362  priced   1400  ~12 min left
+    3200/10362  priced   1478  ~11 min left
+    3400/10362  priced   1539  ~11 min left
+    3600/10362  priced   1591  ~11 min left
+    3800/10362  priced   1653  ~10 min left
+    4000/10362  priced   1737  ~10 min left
+    4200/10362  priced   1807  ~10 min left
+    4400/10362  priced   1893  ~9 min left
+    4600/10362  priced   1964  ~9 min left
+    4800/10362  priced   2029  ~9 min left
+    5000/10362  priced   2089  ~8 min left
+    5200/10362  priced   2149  ~8 min left
+    5400/10362  priced   2220  ~8 min left
+    5600/10362  priced   2273  ~8 min left
+    5800/10362  priced   2332  ~7 min left
+    6000/10362  priced   2417  ~7 min left
+    6200/10362  priced   2485  ~7 min left
+    6400/10362  priced   2567  ~6 min left
+    6600/10362  priced   2667  ~6 min left
+    6800/10362  priced   2767  ~6 min left
+    7000/10362  priced   2847  ~5 min left
+    7200/10362  priced   2968  ~5 min left
+    7400/10362  priced   3090  ~5 min left
+    7600/10362  priced   3219  ~4 min left
+    7800/10362  priced   3350  ~4 min left
+    8000/10362  priced   3460  ~4 min left
+    8200/10362  priced   3565  ~3 min left
+    8400/10362  priced   3672  ~3 min left
+    8600/10362  priced   3783  ~3 min left
+    8800/10362  priced   3901  ~2 min left
+    9000/10362  priced   4013  ~2 min left
+    9200/10362  priced   4138  ~2 min left
+    9400/10362  priced   4254  ~2 min left
+    9600/10362  priced   4371  ~1 min left
+    9800/10362  priced   4498  ~1 min left
+   10000/10362  priced   4598  ~1 min left
+   10200/10362  priced   4677  ~0 min left
+
+wrote 4772 priced products -> tools/fixtures/keells-catalogue-priced.json
