@@ -240,6 +240,18 @@
       "name": "VASELINE LOTION COCOA GLOW 200ML",
       "price": 1315.0,
       "uom": "NO"
+    },
+    {
+      "itemCode": "122661",
+      "name": "KEELLS BABY DIAPERS XL 4S",
+      "price": 380.0,
+      "uom": "NO"
+    },
+    {
+      "itemCode": "101048",
+      "name": "KEELLS DISH WASH LIQUID 500ML",
+      "price": 336.0,
+      "uom": "NO"
     }
   ]
 }
