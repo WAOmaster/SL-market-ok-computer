@@ -1,0 +1,88 @@
+# Keeps scanner/data/barcodes.json fresh.
+#
+# The scanner is a static app with no backend, so the barcode table ships as a
+# file in the repo - which means a commit IS the deploy, and a scheduled commit
+# is the whole update mechanism.
+#
+# Daily is the INCREMENTAL run: the catalogue is walked newest-first and stops
+# at the first page with nothing new, so it is a single HTTP request. A daily
+# full crawl would be 76 requests against a small shop's website to re-download
+# rows that cannot have changed - this table holds identity (barcode, name,
+# category), and a barcode is bound to its product permanently. Prices are the
+# thing that moves daily, and prices are deliberately not stored here.
+#
+# The full crawl runs monthly, and on demand, to pick up renames and removals.
+name: Update barcode table
+
+on:
+  schedule:
+    - cron: '20 1 * * *'    # daily, incremental
+    - cron: '40 2 1 * *'    # 1st of the month, full re-crawl
+  workflow_dispatch:
+    inputs:
+      full:
+        description: 'Run a full re-crawl instead of the incremental tail check'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: barcodes
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Decide which kind of run this is
+        id: mode
+        run: |
+          if [ "${{ github.event.schedule }}" = "40 2 1 * *" ] || [ "${{ inputs.full }}" = "true" ]; then
+            echo "flag=" >> "$GITHUB_OUTPUT"
+            echo "kind=full re-crawl" >> "$GITHUB_OUTPUT"
+          else
+            echo "flag=--incremental" >> "$GITHUB_OUTPUT"
+            echo "kind=incremental" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Fetch products
+        run: python tools/fetch_barcodes.py scanner/data/barcodes.json ${{ steps.mode.outputs.flag }}
+
+      # A crawl that comes back with far fewer products than we already have
+      # means the source had a bad day, not that half the shop closed. Shipping
+      # that would silently blind the scanner, so fail instead and keep the file
+      # that is already committed.
+      - name: Refuse a table that shrank
+        run: |
+          python - <<'PY'
+          import json, subprocess, sys
+          new = json.load(open('scanner/data/barcodes.json', encoding='utf-8'))['count']
+          old_raw = subprocess.run(
+              ['git', 'show', 'HEAD:scanner/data/barcodes.json'],
+              capture_output=True, text=True)
+          old = json.loads(old_raw.stdout)['count'] if old_raw.returncode == 0 else 0
+          print(f'was {old}, now {new}')
+          if old and new < old * 0.9:
+              sys.exit(f'refusing: table shrank from {old} to {new}')
+          PY
+
+      - name: Commit if anything changed
+        run: |
+          if git diff --quiet -- scanner/data/barcodes.json; then
+            echo "no new products"
+            exit 0
+          fi
+          COUNT=$(python -c "import json;print(json.load(open('scanner/data/barcodes.json',encoding='utf-8'))['count'])")
+          git config user.name  'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add scanner/data/barcodes.json
+          git commit -m "data: barcode table refreshed (${{ steps.mode.outputs.kind }}, ${COUNT} products)"
+          git push

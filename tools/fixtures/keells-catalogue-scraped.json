@@ -1,0 +1,2346 @@
+{
+  "format": "slscan.keells-catalogue.v1",
+  "source": "keellssuper.com category listings (item codes as the site reports them)",
+  "capturedAt": "2026-08-30T17:44:06.160Z",
+  "count": 334,
+  "items": [
+    {
+      "itemCode": "10035",
+      "name": "Bubble Matic Detergent Powder 500g",
+      "price": 350,
+      "uom": "NO",
+      "category": "H2M87"
+    },
+    {
+      "itemCode": "10038",
+      "name": "Bubble Matic Washing Detergent Powder 1kg",
+      "price": 680,
+      "uom": "NO",
+      "category": "H2M87"
+    },
+    {
+      "itemCode": "100917",
+      "name": "Keells Chilli Paste 200g",
+      "price": 780,
+      "uom": "NO",
+      "category": "G1DU0"
+    },
+    {
+      "itemCode": "100918",
+      "name": "Keells Chilli Paste 325g",
+      "price": 1105,
+      "uom": "NO",
+      "category": "G1DU0"
+    },
+    {
+      "itemCode": "101055",
+      "name": "Kelloggs Fruit Nut & Seeds Muesli 240g",
+      "price": 1670,
+      "uom": "NO",
+      "category": "G19DD"
+    },
+    {
+      "itemCode": "10274",
+      "name": "Alli Papadam Special 60g",
+      "price": 135,
+      "uom": "NO",
+      "category": "G1DU2"
+    },
+    {
+      "itemCode": "10378",
+      "name": "Alli Papadam Amami 200g",
+      "price": 385,
+      "uom": "NO",
+      "category": "G1DU2"
+    },
+    {
+      "itemCode": "10539",
+      "name": "Alli Instant Red Noodles Handy Pack 400G",
+      "price": 560,
+      "uom": "NO",
+      "category": "G1FHV"
+    },
+    {
+      "itemCode": "105774",
+      "name": "Keells Seeni Sambol 350g",
+      "price": 1150,
+      "uom": "NO",
+      "category": "G1DU3"
+    },
+    {
+      "itemCode": "107275",
+      "name": "Bairaha Chicken Kuruma Breast 300g",
+      "price": 900,
+      "uom": "NO",
+      "category": "D0WSB"
+    },
+    {
+      "itemCode": "108368",
+      "name": "7 Up Pet Bottle 1.5L",
+      "price": 420,
+      "uom": "NO",
+      "category": "B0BQJ"
+    },
+    {
+      "itemCode": "110203",
+      "name": "Chupa Chups Lollipop Classic 11g",
+      "price": 40,
+      "uom": "NO",
+      "category": "G1NV8"
+    },
+    {
+      "itemCode": "110298",
+      "name": "Kellogg's Corn Flakes Moon & Stars K'pack 20g",
+      "price": 70,
+      "uom": "NO",
+      "category": "G19TO"
+    },
+    {
+      "itemCode": "110500",
+      "name": "Drs Prawn Crackers 100g",
+      "price": 265,
+      "uom": "NO",
+      "category": "G1DU2"
+    },
+    {
+      "itemCode": "111253",
+      "name": "Alpenliebe Juzt Jelly Strawberry 46.8g",
+      "price": 150,
+      "uom": "NO",
+      "category": "G1NV8"
+    },
+    {
+      "itemCode": "111608",
+      "name": "Kellogg's Chocos Duet 20g",
+      "price": 70,
+      "uom": "NO",
+      "category": "G19TO"
+    },
+    {
+      "itemCode": "111615",
+      "name": "Keells Sinhala Pickle 350g",
+      "price": 760,
+      "uom": "NO",
+      "category": "G1D3S"
+    },
+    {
+      "itemCode": "111616",
+      "name": "Keells Malay Pickle 350g",
+      "price": 755,
+      "uom": "NO",
+      "category": "G1D3S"
+    },
+    {
+      "itemCode": "111957",
+      "name": "Baby Cheramy Cologne Bedtime 100ml",
+      "price": 510,
+      "uom": "NO",
+      "category": "H26VV"
+    },
+    {
+      "itemCode": "111958",
+      "name": "Baby Cheramy Cologne Cuddle Bunny 100ml",
+      "price": 540,
+      "uom": "NO",
+      "category": "H26VV"
+    },
+    {
+      "itemCode": "111961",
+      "name": "Baby Cheramy Bedtime Baby Wash 200ml",
+      "price": 525,
+      "uom": "NO",
+      "category": "H26VV"
+    },
+    {
+      "itemCode": "111966",
+      "name": "Baby Cheramy Laundry Wash 600ml",
+      "price": 700,
+      "uom": "NO",
+      "category": "H26VY"
+    },
+    {
+      "itemCode": "112103",
+      "name": "Center Fruit Strawberry Chewing Gum 18G",
+      "price": 75,
+      "uom": "NO",
+      "category": "G1NV8"
+    },
+    {
+      "itemCode": "112589",
+      "name": "Ambewela Butter Salted 200g",
+      "price": 1200,
+      "uom": "NO",
+      "category": "C0ORK"
+    },
+    {
+      "itemCode": "112686",
+      "name": "Ritzbury Chocolate Biscuit Pudding 55g",
+      "price": 170,
+      "uom": "NO",
+      "category": "CDERJ"
+    },
+    {
+      "itemCode": "112766",
+      "name": "Alli Idli Mixture 400g",
+      "price": 495,
+      "uom": "NO",
+      "category": "G1BTV"
+    },
+    {
+      "itemCode": "112789",
+      "name": "Black & Gold Garlic Murukku 200g",
+      "price": 470,
+      "uom": "NO",
+      "category": "GSNVB"
+    },
+    {
+      "itemCode": "112790",
+      "name": "Black & Gold Roasted Gram 100g",
+      "price": 270,
+      "uom": "NO",
+      "category": "GSNVC"
+    },
+    {
+      "itemCode": "1132",
+      "name": "Baby Cheramy Cream 200ml",
+      "price": 655,
+      "uom": "NO",
+      "category": "H26VV"
+    },
+    {
+      "itemCode": "113879",
+      "name": "Dash F/Condtionr Magic Soft Floral 800ml",
+      "price": 1140,
+      "uom": "NO",
+      "category": "H2MOM"
+    },
+    {
+      "itemCode": "114067",
+      "name": "Little Lion Swiss Roll Vanilla 200g",
+      "price": 480,
+      "uom": "NO",
+      "category": "CDERE"
+    },
+    {
+      "itemCode": "114194",
+      "name": "Harischandra Hopper Mixture 400g",
+      "price": 250,
+      "uom": "NO",
+      "category": "G1BTV"
+    },
+    {
+      "itemCode": "11459",
+      "name": "Baby Cheramy Cologne Classic 100ml",
+      "price": 595,
+      "uom": "NO",
+      "category": "H26VV"
+    },
+    {
+      "itemCode": "11460",
+      "name": "Baby Cheramy Baby Talc Classic 100g",
+      "price": 360,
+      "uom": "NO",
+      "category": "H26VV"
+    },
+    {
+      "itemCode": "11496",
+      "name": "Baby Cheramy Cream 100ml",
+      "price": 390,
+      "uom": "NO",
+      "category": "H26VV"
+    },
+    {
+      "itemCode": "114979",
+      "name": "Bairaha Bockwurst Chicken Sausages 300g",
+      "price": 1000,
+      "uom": "NO",
+      "category": "D0X8H"
+    },
+    {
+      "itemCode": "115234",
+      "name": "Kellogg's Corn Flakes 875G - 25% Extra",
+      "price": 2950,
+      "uom": "NO",
+      "category": "G19TO"
+    },
+    {
+      "itemCode": "115253",
+      "name": "4Rever Face Wash Tea Tree Oil 100ml",
+      "price": 390,
+      "uom": "NO",
+      "category": "H2BW8"
+    },
+    {
+      "itemCode": "115254",
+      "name": "4Rever Face Wash Venivel 100ml",
+      "price": 390,
+      "uom": "NO",
+      "category": "H2BW8"
+    },
+    {
+      "itemCode": "115291",
+      "name": "Diva Detergent Powder Flowers Rose & Lime 1kg",
+      "price": 375,
+      "uom": "NO",
+      "category": "H2M87"
+    },
+    {
+      "itemCode": "115571",
+      "name": "Cbl Ramba Tetos Bbq 20g",
+      "price": 85,
+      "uom": "NO",
+      "category": "GSNHS"
+    },
+    {
+      "itemCode": "115572",
+      "name": "Cbl Ramba Tetos Cheese 20g",
+      "price": 85,
+      "uom": "NO",
+      "category": "GSNHS"
+    },
+    {
+      "itemCode": "115573",
+      "name": "Cbl Ramba Tetos Tomato 20g",
+      "price": 85,
+      "uom": "NO",
+      "category": "GSNHS"
+    },
+    {
+      "itemCode": "115575",
+      "name": "Ambewela Cheese Spread 100g",
+      "price": 600,
+      "uom": "NO",
+      "category": "C0ORL"
+    },
+    {
+      "itemCode": "115581",
+      "name": "Baby Cheramy Floral Cream 100ml",
+      "price": 390,
+      "uom": "NO",
+      "category": "H26VV"
+    },
+    {
+      "itemCode": "115582",
+      "name": "Baby Cheramy Cream Nourish 200ml",
+      "price": 655,
+      "uom": "NO",
+      "category": "H26VV"
+    },
+    {
+      "itemCode": "115692",
+      "name": "Bairaha Chicken Sausage Cheese & Onion 150G",
+      "price": 550,
+      "uom": "NO",
+      "category": "D0X8H"
+    },
+    {
+      "itemCode": "116345",
+      "name": "Ambewela Set Yoghurt Multipack 6S 480g",
+      "price": 460,
+      "uom": "NO",
+      "category": "C0PRT"
+    },
+    {
+      "itemCode": "116424",
+      "name": "4Rever Gold Bb+ Cream With Spf 15 15g",
+      "price": 650,
+      "uom": "NO",
+      "category": "H2BW9"
+    },
+    {
+      "itemCode": "116517",
+      "name": "Ritzbury Chocolate Mousse 60g",
+      "price": 245,
+      "uom": "NO",
+      "category": "CDERJ"
+    },
+    {
+      "itemCode": "116687",
+      "name": "Cocoland Coconut Butter 250g",
+      "price": 686,
+      "uom": "NO",
+      "category": "C0ORM"
+    },
+    {
+      "itemCode": "117560",
+      "name": "Ambewela Flavoured Milk Uht Vanilla Tetra 1L",
+      "price": 600,
+      "uom": "NO",
+      "category": "B0GQX"
+    },
+    {
+      "itemCode": "117561",
+      "name": "Ambewela Chocolate Flavoured Milk Uht Tetra 1L",
+      "price": 600,
+      "uom": "NO",
+      "category": "B0GQX"
+    },
+    {
+      "itemCode": "117977",
+      "name": "Keells Fried Onion Sambol 250g",
+      "price": 1350,
+      "uom": "NO",
+      "category": "G1DU3"
+    },
+    {
+      "itemCode": "118033",
+      "name": "Keells Atta Flour 1kg",
+      "price": 292,
+      "uom": "NO",
+      "category": "G1BTX"
+    },
+    {
+      "itemCode": "118628",
+      "name": "Kelloggs Fruit & Nut Muesli 500g",
+      "price": 3150,
+      "uom": "NO",
+      "category": "G19DD"
+    },
+    {
+      "itemCode": "118806",
+      "name": "Diva Flowers Jasmine Detergent Powder 1Kg",
+      "price": 375,
+      "uom": "NO",
+      "category": "H2M87"
+    },
+    {
+      "itemCode": "118968",
+      "name": "Kotmale Butter Salted 200g",
+      "price": 1180,
+      "uom": "NO",
+      "category": "C0ORK"
+    },
+    {
+      "itemCode": "119009",
+      "name": "Keells Chocolate Cream Biscuit 100g",
+      "price": 108,
+      "uom": "NO",
+      "category": "GBSV5"
+    },
+    {
+      "itemCode": "119012",
+      "name": "Keells Cream Cracker 125g",
+      "price": 126,
+      "uom": "NO",
+      "category": "GBSV2"
+    },
+    {
+      "itemCode": "119244",
+      "name": "Malithi Kithul Jaggery 400g",
+      "price": 1870,
+      "uom": "NO",
+      "category": "CDERH"
+    },
+    {
+      "itemCode": "119478",
+      "name": "Baby Cheramy Diapers Large 12S",
+      "price": 1440,
+      "uom": "NO",
+      "category": "H26VX"
+    },
+    {
+      "itemCode": "119597",
+      "name": "Elephant Papadam 60g",
+      "price": 165,
+      "uom": "NO",
+      "category": "G1DU2"
+    },
+    {
+      "itemCode": "119807",
+      "name": "All Out Top Load Laundry Liquid 1L",
+      "price": 950,
+      "uom": "NO",
+      "category": "H2M81"
+    },
+    {
+      "itemCode": "120119",
+      "name": "Golden Star Garlic Butter 150g",
+      "price": 845,
+      "uom": "NO",
+      "category": "C0ORQ"
+    },
+    {
+      "itemCode": "120132",
+      "name": "Alkafresh Alkaline Drinking Water Pet Bottle 500ml",
+      "price": 190,
+      "uom": "NO",
+      "category": "B0DQQ"
+    },
+    {
+      "itemCode": "12043",
+      "name": "Mccurrie Garlic Pickle 375g",
+      "price": 1290,
+      "uom": "NO",
+      "category": "G1D3S"
+    },
+    {
+      "itemCode": "120759",
+      "name": "Aarogyaa 5 Bean Mix 500g",
+      "price": 680,
+      "uom": "NO",
+      "category": "G1HUL"
+    },
+    {
+      "itemCode": "120782",
+      "name": "Center Fresh Gum Mint Crunch 28g",
+      "price": 250,
+      "uom": "NO",
+      "category": "G1NV8"
+    },
+    {
+      "itemCode": "120895",
+      "name": "Eazy Cheezy Cheddar Cheese Spread 260g",
+      "price": 970,
+      "uom": "NO",
+      "category": "C0ORL"
+    },
+    {
+      "itemCode": "120896",
+      "name": "Eazy Cheezy Cheese Spread 260g",
+      "price": 970,
+      "uom": "NO",
+      "category": "C0ORL"
+    },
+    {
+      "itemCode": "120923",
+      "name": "Master Spice Maldive Fish Sambol 200g",
+      "price": 1390,
+      "uom": "NO",
+      "category": "G1DU3"
+    },
+    {
+      "itemCode": "120931",
+      "name": "Ambewela Processed Cheese Block 200g",
+      "price": 1250,
+      "uom": "NO",
+      "category": "C0I5C"
+    },
+    {
+      "itemCode": "120932",
+      "name": "Ambewela Plain Gouda Cheese Block 200g",
+      "price": 1600,
+      "uom": "NO",
+      "category": "C0I5C"
+    },
+    {
+      "itemCode": "120998",
+      "name": "Keells Caramel Pudding 80g",
+      "price": 155,
+      "uom": "NO",
+      "category": "CDERJ"
+    },
+    {
+      "itemCode": "121000",
+      "name": "Keells Chocolate Biscuit Pudding 60g",
+      "price": 140,
+      "uom": "NO",
+      "category": "CDERJ"
+    },
+    {
+      "itemCode": "121028",
+      "name": "Candyman Lollipop Strawberry 8g",
+      "price": 25,
+      "uom": "NO",
+      "category": "G1NV8"
+    },
+    {
+      "itemCode": "121029",
+      "name": "Candyman Lollipop Blackcurrant 8g",
+      "price": 30,
+      "uom": "NO",
+      "category": "G1NV8"
+    },
+    {
+      "itemCode": "121340",
+      "name": "Diva Germ Guard Laundry Liquid 1L",
+      "price": 750,
+      "uom": "NO",
+      "category": "H2M81"
+    },
+    {
+      "itemCode": "121341",
+      "name": "Diva Color Guard Laundry Liquid 1L",
+      "price": 750,
+      "uom": "NO",
+      "category": "H2M81"
+    },
+    {
+      "itemCode": "121344",
+      "name": "Bubble Detergent Powder Aloe Vera 1kg",
+      "price": 490,
+      "uom": "NO",
+      "category": "H2M87"
+    },
+    {
+      "itemCode": "121345",
+      "name": "Bubble Detergent Powder Aloe Vera 500g",
+      "price": 260,
+      "uom": "NO",
+      "category": "H2M87"
+    },
+    {
+      "itemCode": "121351",
+      "name": "Finches Iced Gem Biscuit 100g",
+      "price": 199,
+      "uom": "NO",
+      "category": "GBSV5"
+    },
+    {
+      "itemCode": "121479",
+      "name": "4Rever Body Milk Gold Moisturising 200ml",
+      "price": 950,
+      "uom": "NO",
+      "category": "H2AW3"
+    },
+    {
+      "itemCode": "121493",
+      "name": "Edinborough Mango Chutney 200g",
+      "price": 390,
+      "uom": "NO",
+      "category": "G1DU1"
+    },
+    {
+      "itemCode": "121610",
+      "name": "Baby Cheramy Floral Cologne 200ml",
+      "price": 840,
+      "uom": "NO",
+      "category": "H26VV"
+    },
+    {
+      "itemCode": "121708",
+      "name": "Bairaha Chicken Cheese Nuggets 240g",
+      "price": 900,
+      "uom": "NO",
+      "category": "D0VS7"
+    },
+    {
+      "itemCode": "121732",
+      "name": "Black And Gold Gingelly Balls 50g",
+      "price": 250,
+      "uom": "NO",
+      "category": "G1NV9"
+    },
+    {
+      "itemCode": "121840",
+      "name": "Alpenliebe Bears & Bottles Gummies 35g",
+      "price": 100,
+      "uom": "NO",
+      "category": "G1NV8"
+    },
+    {
+      "itemCode": "121901",
+      "name": "Akbar Coffee Gold Jar 100g",
+      "price": 3400,
+      "uom": "NO",
+      "category": "BCFQS"
+    },
+    {
+      "itemCode": "122008",
+      "name": "Ahmad Tea Bopf Premium Loose Pouch 400g",
+      "price": 1340,
+      "uom": "NO",
+      "category": "B0HR2"
+    },
+    {
+      "itemCode": "122173",
+      "name": "12Mm Paper Straw",
+      "price": 7.15,
+      "uom": "NO",
+      "category": "KYYYY"
+    },
+    {
+      "itemCode": "122199",
+      "name": "Aswenna Green Gram Dosa Mix 500g",
+      "price": 460,
+      "uom": "NO",
+      "category": "G1BTV"
+    },
+    {
+      "itemCode": "122247",
+      "name": "Hope Butter Sugar Free Cookies 90g",
+      "price": 510,
+      "uom": "NO",
+      "category": "GBSV3"
+    },
+    {
+      "itemCode": "122248",
+      "name": "Hope Peanut Sugar Free Cookies 90g",
+      "price": 430,
+      "uom": "NO",
+      "category": "GBSV3"
+    },
+    {
+      "itemCode": "12228",
+      "name": "Baby Cheramy Cologne Lucky Ducky 100ml",
+      "price": 540,
+      "uom": "NO",
+      "category": "H26VV"
+    },
+    {
+      "itemCode": "122416",
+      "name": "Keells Iced Gem Biscuits 240g",
+      "price": 238,
+      "uom": "NO",
+      "category": "GBSV5"
+    },
+    {
+      "itemCode": "122559",
+      "name": "Keells Chocolate Wafers 100g",
+      "price": 138,
+      "uom": "NO",
+      "category": "GBSV5"
+    },
+    {
+      "itemCode": "122601",
+      "name": "Daintee Clairs Toffee Orange 43g",
+      "price": 110,
+      "uom": "NO",
+      "category": "G1NV8"
+    },
+    {
+      "itemCode": "122605",
+      "name": "All Out Laundry Liquid Top Load Pouch 1L",
+      "price": 850,
+      "uom": "NO",
+      "category": "H2M81"
+    },
+    {
+      "itemCode": "122732",
+      "name": "4Rever Face Wash Aloe Lavender 100ml",
+      "price": 390,
+      "uom": "NO",
+      "category": "H2BW8"
+    },
+    {
+      "itemCode": "122733",
+      "name": "4Rever Face Wash Rose Anti Acne 100ml",
+      "price": 450,
+      "uom": "NO",
+      "category": "H2BW8"
+    },
+    {
+      "itemCode": "122734",
+      "name": "4Rever Body Milk Cocoa Butter 200ml",
+      "price": 830,
+      "uom": "NO",
+      "category": "H2AW3"
+    },
+    {
+      "itemCode": "122735",
+      "name": "4Rever Body Milk Aloe Lavender 200ml",
+      "price": 750,
+      "uom": "NO",
+      "category": "H2AW3"
+    },
+    {
+      "itemCode": "122838",
+      "name": "Hope Spicy Tea Cookies 90g",
+      "price": 440,
+      "uom": "NO",
+      "category": "GBSV5"
+    },
+    {
+      "itemCode": "122967",
+      "name": "Cherish Vanilla Wafer Cubes 85g",
+      "price": 120,
+      "uom": "NO",
+      "category": "GBSV5"
+    },
+    {
+      "itemCode": "123417",
+      "name": "Kellogg's Froot Loops 285g",
+      "price": 1590,
+      "uom": "NO",
+      "category": "G19TO"
+    },
+    {
+      "itemCode": "123455",
+      "name": "Ahmad Tea Flavoured Chai Spice Box 100G",
+      "price": 790,
+      "uom": "NO",
+      "category": "B0HQY"
+    },
+    {
+      "itemCode": "123485",
+      "name": "Diva Laundry Liquid Color Guard 600ml",
+      "price": 480,
+      "uom": "NO",
+      "category": "H2M81"
+    },
+    {
+      "itemCode": "123545",
+      "name": "Golden Star Garlic Butter Nai Miris 150g",
+      "price": 890,
+      "uom": "NO",
+      "category": "C0ORQ"
+    },
+    {
+      "itemCode": "123772",
+      "name": "Finch Dried Red Cherry 75g",
+      "price": 1290,
+      "uom": "NO",
+      "category": "GSNI1"
+    },
+    {
+      "itemCode": "123773",
+      "name": "Finch Dried Green Kiwi 75g",
+      "price": 990,
+      "uom": "NO",
+      "category": "GSNI1"
+    },
+    {
+      "itemCode": "123774",
+      "name": "Finch Dried Premium Mango 75g",
+      "price": 990,
+      "uom": "NO",
+      "category": "GSNI1"
+    },
+    {
+      "itemCode": "123904",
+      "name": "Baby Cheramy Head To Toe Baby Wash Milk & Oats 200ml",
+      "price": 525,
+      "uom": "NO",
+      "category": "H26VV"
+    },
+    {
+      "itemCode": "123905",
+      "name": "Baby Cheramy Baby Shampoo Honey & Milk 100Ml",
+      "price": 330,
+      "uom": "NO",
+      "category": "H26VW"
+    },
+    {
+      "itemCode": "124159",
+      "name": "7 Up Pet Bottle 1L",
+      "price": 300,
+      "uom": "NO",
+      "category": "B0BQJ"
+    },
+    {
+      "itemCode": "124177",
+      "name": "Mccurrie Chinese Chilli Paste 300g",
+      "price": 1480,
+      "uom": "NO",
+      "category": "G1DU0"
+    },
+    {
+      "itemCode": "124186",
+      "name": "Delmalight Detergent Soap Lime Fresh 110g",
+      "price": 110,
+      "uom": "NO",
+      "category": "H2MOQ"
+    },
+    {
+      "itemCode": "124187",
+      "name": "Delmalight Bar Soap 500g",
+      "price": 500,
+      "uom": "NO",
+      "category": "H2MOQ"
+    },
+    {
+      "itemCode": "124655",
+      "name": "Dash Care Laundry Liquid 1L",
+      "price": 830,
+      "uom": "NO",
+      "category": "H2M81"
+    },
+    {
+      "itemCode": "124719",
+      "name": "Alerics Rocky Road Ice Cream 1L",
+      "price": 1650,
+      "uom": "NO",
+      "category": "D0QIC"
+    },
+    {
+      "itemCode": "124750",
+      "name": "Daintee Jelly&Rice Crispis Chocolate 45g",
+      "price": 120,
+      "uom": "NO",
+      "category": "G1NV7"
+    },
+    {
+      "itemCode": "124816",
+      "name": "Shan Lanka Caramel Pudding 80g",
+      "price": 198,
+      "uom": "NO",
+      "category": "CDERJ"
+    },
+    {
+      "itemCode": "124889",
+      "name": "Shan Lanka Wattalappan 80g",
+      "price": 198,
+      "uom": "NO",
+      "category": "CDERJ"
+    },
+    {
+      "itemCode": "125112",
+      "name": "Flora Fat Spread Tub 100g",
+      "price": 320,
+      "uom": "NO",
+      "category": "C0ORM"
+    },
+    {
+      "itemCode": "125298",
+      "name": "Daintee Clairs Toffee Strawberry 43g",
+      "price": 110,
+      "uom": "NO",
+      "category": "G1NV8"
+    },
+    {
+      "itemCode": "125300",
+      "name": "Daintee Clairs Toffee Chocolate 43g",
+      "price": 110,
+      "uom": "NO",
+      "category": "G1NV8"
+    },
+    {
+      "itemCode": "125307",
+      "name": "Catch Crispy Fried Chicken Mix 100g",
+      "price": 200,
+      "uom": "NO",
+      "category": "G1BTV"
+    },
+    {
+      "itemCode": "125308",
+      "name": "Catch Bajji Bonda Mix 100g",
+      "price": 190,
+      "uom": "NO",
+      "category": "G1BTV"
+    },
+    {
+      "itemCode": "125386",
+      "name": "Fondre Fat Spread Tub 500g",
+      "price": 1280,
+      "uom": "NO",
+      "category": "C0ORM"
+    },
+    {
+      "itemCode": "125387",
+      "name": "Fondre Fat Spread Tub 250g",
+      "price": 690,
+      "uom": "NO",
+      "category": "C0ORM"
+    },
+    {
+      "itemCode": "125706",
+      "name": "Alli Atta Flour 400g",
+      "price": 220,
+      "uom": "NO",
+      "category": "G1BTX"
+    },
+    {
+      "itemCode": "125747",
+      "name": "4Rever G/Pigmentation Remove Cream 25X2g",
+      "price": 2200,
+      "uom": "NO",
+      "category": "H2BW9"
+    },
+    {
+      "itemCode": "125766",
+      "name": "Chupa Chups Gum Lollipop 14g",
+      "price": 50,
+      "uom": "NO",
+      "category": "G1NV8"
+    },
+    {
+      "itemCode": "125799",
+      "name": "Prima Swiss Roll Red Velvet 225g",
+      "price": 710,
+      "uom": "NO",
+      "category": "CDERE"
+    },
+    {
+      "itemCode": "125823",
+      "name": "Alli String Hopper Flour White Rice 1kg",
+      "price": 405,
+      "uom": "NO",
+      "category": "G1BTV"
+    },
+    {
+      "itemCode": "125824",
+      "name": "Alli String Hopper Flour Red Rice 1kg",
+      "price": 405,
+      "uom": "NO",
+      "category": "G1BTV"
+    },
+    {
+      "itemCode": "125863",
+      "name": "Astra Soft Fat Spread Tub 100g",
+      "price": 200,
+      "uom": "NO",
+      "category": "C0ORM"
+    },
+    {
+      "itemCode": "126175",
+      "name": "Milka Milk Chocolate 100g",
+      "price": 1700,
+      "uom": "NO",
+      "category": "CDERF"
+    },
+    {
+      "itemCode": "126177",
+      "name": "Milka Oreo Chocolate 100g",
+      "price": 1750,
+      "uom": "NO",
+      "category": "CDERF"
+    },
+    {
+      "itemCode": "126263",
+      "name": "Comfort Fabric Conditioner Desire 850ml",
+      "price": 1625,
+      "uom": "NO",
+      "category": "H2MOM"
+    },
+    {
+      "itemCode": "126303",
+      "name": "Kotmale Butter Salted 125g",
+      "price": 750,
+      "uom": "NO",
+      "category": "C0ORK"
+    },
+    {
+      "itemCode": "126310",
+      "name": "Comfort Fabric Conditioner Royale 850ml",
+      "price": 1625,
+      "uom": "NO",
+      "category": "H2MOM"
+    },
+    {
+      "itemCode": "126517",
+      "name": "Astra Soft Fat Spread Tub 250g",
+      "price": 520,
+      "uom": "NO",
+      "category": "C0ORM"
+    },
+    {
+      "itemCode": "126538",
+      "name": "Snack Entity Mocha Brownie 70g",
+      "price": 350,
+      "uom": "NO",
+      "category": "CDERE"
+    },
+    {
+      "itemCode": "126539",
+      "name": "Snack Entity Original Brownie 70g",
+      "price": 350,
+      "uom": "NO",
+      "category": "CDERE"
+    },
+    {
+      "itemCode": "126540",
+      "name": "Snack Entity Cashew Brownieâ 70G",
+      "price": 350,
+      "uom": "NO",
+      "category": "CDERE"
+    },
+    {
+      "itemCode": "126752",
+      "name": "Catch Rice Flakes White 250g",
+      "price": 390,
+      "uom": "NO",
+      "category": "G19TO"
+    },
+    {
+      "itemCode": "126753",
+      "name": "Catch Rice Flakes Red 250g",
+      "price": 190,
+      "uom": "NO",
+      "category": "G19TO"
+    },
+    {
+      "itemCode": "126790",
+      "name": "Maliban Nutrifix Oats Cereal Bar 35g",
+      "price": 300,
+      "uom": "NO",
+      "category": "G19TQ"
+    },
+    {
+      "itemCode": "126791",
+      "name": "Maliban Nutrifix Nutty Cereal Bar 30g",
+      "price": 300,
+      "uom": "NO",
+      "category": "G19TQ"
+    },
+    {
+      "itemCode": "127121",
+      "name": "Baby Cheramy Diapers Medium 36S",
+      "price": 3670,
+      "uom": "NO",
+      "category": "H26VX"
+    },
+    {
+      "itemCode": "127373",
+      "name": "Julies Choco More Sandwich 132g",
+      "price": 920,
+      "uom": "NO",
+      "category": "GBSV5"
+    },
+    {
+      "itemCode": "127374",
+      "name": "Julies Lemon Puff Sandwich 170g",
+      "price": 1350,
+      "uom": "NO",
+      "category": "GBSV5"
+    },
+    {
+      "itemCode": "127375",
+      "name": "Julies Choco Hazel Puff Sandwich 180g",
+      "price": 1350,
+      "uom": "NO",
+      "category": "GBSV5"
+    },
+    {
+      "itemCode": "127376",
+      "name": "Julies Sugar Crackers 132g",
+      "price": 700,
+      "uom": "NO",
+      "category": "GBSV2"
+    },
+    {
+      "itemCode": "127377",
+      "name": "Julies Banana Sandwich 100g",
+      "price": 650,
+      "uom": "NO",
+      "category": "GBSV5"
+    },
+    {
+      "itemCode": "127481",
+      "name": "Finch Pizza Flour 1kg",
+      "price": 990,
+      "uom": "NO",
+      "category": "G1BTV"
+    },
+    {
+      "itemCode": "127521",
+      "name": "Baby Cheramy Diapers Small 36S",
+      "price": 3115,
+      "uom": "NO",
+      "category": "H26VX"
+    },
+    {
+      "itemCode": "127522",
+      "name": "Baby Cheramy Diapers Extra Large 36S",
+      "price": 4340,
+      "uom": "NO",
+      "category": "H26VX"
+    },
+    {
+      "itemCode": "127536",
+      "name": "Candy Man Lollipop Orange 8g",
+      "price": 30,
+      "uom": "NO",
+      "category": "G1NV8"
+    },
+    {
+      "itemCode": "127541",
+      "name": "Keells Custard Cream Biscuits 200g",
+      "price": 195,
+      "uom": "NO",
+      "category": "GBSV5"
+    },
+    {
+      "itemCode": "127542",
+      "name": "Keells Chocolate Cream Biscuit 360g",
+      "price": 330,
+      "uom": "NO",
+      "category": "GBSV5"
+    },
+    {
+      "itemCode": "127544",
+      "name": "Keells Lemon Puff 200g",
+      "price": 205,
+      "uom": "NO",
+      "category": "GBSV5"
+    },
+    {
+      "itemCode": "127586",
+      "name": "Mccurrie Dryfish Badun Katta 100g",
+      "price": 1240,
+      "uom": "NO",
+      "category": "G1DU3"
+    },
+    {
+      "itemCode": "127587",
+      "name": "Mccurrie Malay Pickle 360g",
+      "price": 1055,
+      "uom": "NO",
+      "category": "G1D3S"
+    },
+    {
+      "itemCode": "127729",
+      "name": "Made In Earth Kithul Jaggery 500g",
+      "price": 1830,
+      "uom": "NO",
+      "category": "CDERH"
+    },
+    {
+      "itemCode": "127754",
+      "name": "Snack Entity Kunafa Brownie 70g",
+      "price": 650,
+      "uom": "NO",
+      "category": "CDERE"
+    },
+    {
+      "itemCode": "128051",
+      "name": "Ma's Pickled Sushi Ginger 110g",
+      "price": 820,
+      "uom": "NO",
+      "category": "G1DU3"
+    },
+    {
+      "itemCode": "128127",
+      "name": "Ambewela Set Yoghurt Tub 950ml",
+      "price": 880,
+      "uom": "NO",
+      "category": "C0PRT"
+    },
+    {
+      "itemCode": "128128",
+      "name": "Ambewela Set Yoghurt Tub 450ml",
+      "price": 440,
+      "uom": "NO",
+      "category": "C0PRT"
+    },
+    {
+      "itemCode": "128129",
+      "name": "Ambewela Faluda Yoghurt 80ml",
+      "price": 80,
+      "uom": "NO",
+      "category": "C0PRT"
+    },
+    {
+      "itemCode": "128130",
+      "name": "Ambewela Drinking Yoghurt Strawberry 180ml",
+      "price": 170,
+      "uom": "NO",
+      "category": "C0JR6"
+    },
+    {
+      "itemCode": "128131",
+      "name": "Ambewela Drinking Yoghurt Vanilla 180ml",
+      "price": 170,
+      "uom": "NO",
+      "category": "C0JR6"
+    },
+    {
+      "itemCode": "128152",
+      "name": "Center Fresh Gum Strawberry Crunch 28g",
+      "price": 250,
+      "uom": "NO",
+      "category": "G1NV8"
+    },
+    {
+      "itemCode": "128178",
+      "name": "Comfort Super Sensorial Royal 210ml",
+      "price": 410,
+      "uom": "NO",
+      "category": "H2MOM"
+    },
+    {
+      "itemCode": "128179",
+      "name": "Comfort Super Sensorial Desire 210ml",
+      "price": 410,
+      "uom": "NO",
+      "category": "H2MOM"
+    },
+    {
+      "itemCode": "128295",
+      "name": "4700Bc Popcorn Peri Peri 25g",
+      "price": 265,
+      "uom": "NO",
+      "category": "GSNVD"
+    },
+    {
+      "itemCode": "128296",
+      "name": "4700Bc Popcorn Cheese 22g",
+      "price": 265,
+      "uom": "NO",
+      "category": "GSNVD"
+    },
+    {
+      "itemCode": "128298",
+      "name": "4700Bc Popcorn Butter 25g",
+      "price": 265,
+      "uom": "NO",
+      "category": "GSNVD"
+    },
+    {
+      "itemCode": "128314",
+      "name": "100 Plus Isotonic Drink Lemon & Lime Can 325ml",
+      "price": 530,
+      "uom": "NO",
+      "category": "B0CQO"
+    },
+    {
+      "itemCode": "128325",
+      "name": "Bubble Rose Laundry Detergent Powder 1kg",
+      "price": 490,
+      "uom": "NO",
+      "category": "H2M87"
+    },
+    {
+      "itemCode": "128422",
+      "name": "Mccurrie Mango Chutney Vacuum Pack 450g",
+      "price": 825,
+      "uom": "NO",
+      "category": "G1DU1"
+    },
+    {
+      "itemCode": "128494",
+      "name": "Finagle Swiss Roll Coffee 225g",
+      "price": 685,
+      "uom": "NO",
+      "category": "CDERE"
+    },
+    {
+      "itemCode": "128548",
+      "name": "Alli Atta Flour 1kg",
+      "price": 505,
+      "uom": "NO",
+      "category": "G1BTX"
+    },
+    {
+      "itemCode": "128637",
+      "name": "Zenbar Snack Bar Triple Choc Fudge 55g",
+      "price": 850,
+      "uom": "NO",
+      "category": "CDERF"
+    },
+    {
+      "itemCode": "128638",
+      "name": "Zenbar Snack Bar Velvet Berry 55g",
+      "price": 850,
+      "uom": "NO",
+      "category": "CDERF"
+    },
+    {
+      "itemCode": "128639",
+      "name": "Zenbar Snack Bar Mocha Almond 55g",
+      "price": 850,
+      "uom": "NO",
+      "category": "CDERF"
+    },
+    {
+      "itemCode": "128667",
+      "name": "Bairaha Chicken Meatballs 500g",
+      "price": 900,
+      "uom": "NO",
+      "category": "D0XSG"
+    },
+    {
+      "itemCode": "128668",
+      "name": "Bairaha Chicken Sausage 500g",
+      "price": 950,
+      "uom": "NO",
+      "category": "D0X8H"
+    },
+    {
+      "itemCode": "128694",
+      "name": "7 Up Can 300ml",
+      "price": 350,
+      "uom": "NO",
+      "category": "B0CQJ"
+    },
+    {
+      "itemCode": "128723",
+      "name": "Al Suwissria Kunafa & Pistachio White Chocolate 100g",
+      "price": 3680,
+      "uom": "NO",
+      "category": "G1NV7"
+    },
+    {
+      "itemCode": "128725",
+      "name": "Chocodate Choc Coated Date Assorted 100g",
+      "price": 2980,
+      "uom": "NO",
+      "category": "G1NV9"
+    },
+    {
+      "itemCode": "128745",
+      "name": "Cadbury Dairy Milk Chocolate 108g",
+      "price": 2140,
+      "uom": "NO",
+      "category": "G1NV7"
+    },
+    {
+      "itemCode": "128768",
+      "name": "Chupa Chups Lollipop Pack 66G 6S",
+      "price": 225,
+      "uom": "NO",
+      "category": "G1NV8"
+    },
+    {
+      "itemCode": "128812",
+      "name": "Bairaha Chicken Paprika Ham 150g",
+      "price": 1200,
+      "uom": "NO",
+      "category": "D0XSH"
+    },
+    {
+      "itemCode": "128894",
+      "name": "Bairaha Chicken Bratwurst White Sausage 200g",
+      "price": 1600,
+      "uom": "NO",
+      "category": "D0X8H"
+    },
+    {
+      "itemCode": "128916",
+      "name": "4Ever Hibiscus Shampoo With Conditioner 180ml",
+      "price": 620,
+      "uom": "NO",
+      "category": "H2EWN"
+    },
+    {
+      "itemCode": "128969",
+      "name": "Finch Pistachio Nuts 75g",
+      "price": 1890,
+      "uom": "NO",
+      "category": "GSNVC"
+    },
+    {
+      "itemCode": "129014",
+      "name": "Keells Chocolate Wafer Sticks 20g",
+      "price": 36,
+      "uom": "NO",
+      "category": "GBSV5"
+    },
+    {
+      "itemCode": "12993",
+      "name": "Black & Gold Devilled Gram 200g",
+      "price": 490,
+      "uom": "NO",
+      "category": "GSNVC"
+    },
+    {
+      "itemCode": "13018",
+      "name": "Black & Gold Devilled Dhal 200g",
+      "price": 455,
+      "uom": "NO",
+      "category": "GSNVC"
+    },
+    {
+      "itemCode": "13055",
+      "name": "Astra Fat Spread Tub 250g",
+      "price": 600,
+      "uom": "NO",
+      "category": "C0ORM"
+    },
+    {
+      "itemCode": "13067",
+      "name": "Astra Fat Spread Tub 100g",
+      "price": 240,
+      "uom": "NO",
+      "category": "C0ORM"
+    },
+    {
+      "itemCode": "1335",
+      "name": "Kellogg's Corn Flakes Honey Crunch 300",
+      "price": 1360,
+      "uom": "NO",
+      "category": "G19TO"
+    },
+    {
+      "itemCode": "1349",
+      "name": "Baby Cheramy Cream Protect 100ml",
+      "price": 390,
+      "uom": "NO",
+      "category": "H26VV"
+    },
+    {
+      "itemCode": "13548",
+      "name": "Baby Cheramy Gift Pack",
+      "price": 1450,
+      "uom": "NO",
+      "category": "H26HU"
+    },
+    {
+      "itemCode": "13698",
+      "name": "Ambewela Full Cream Fresh Milk Tetra 1L",
+      "price": 580,
+      "uom": "NO",
+      "category": "B0GQX"
+    },
+    {
+      "itemCode": "13701",
+      "name": "Daintee Fruit Drops Jujubes 150g",
+      "price": 375,
+      "uom": "NO",
+      "category": "G1NV8"
+    },
+    {
+      "itemCode": "13738",
+      "name": "Harischandra Kurakkan Thosai Mix 400g",
+      "price": 480,
+      "uom": "NO",
+      "category": "G1BTV"
+    },
+    {
+      "itemCode": "14515",
+      "name": "Big Babol Gum Tutti Frutti Stick 18g",
+      "price": 75,
+      "uom": "NO",
+      "category": "G1NV8"
+    },
+    {
+      "itemCode": "14953",
+      "name": "Flora Fat Spread Tub 500g",
+      "price": 1390,
+      "uom": "NO",
+      "category": "C0ORM"
+    },
+    {
+      "itemCode": "14965",
+      "name": "Flora Fat Spread Tub 250g",
+      "price": 750,
+      "uom": "NO",
+      "category": "C0ORM"
+    },
+    {
+      "itemCode": "15077",
+      "name": "Astra Fat Spread Tub 1kg",
+      "price": 1750,
+      "uom": "NO",
+      "category": "C0ORM"
+    },
+    {
+      "itemCode": "15200",
+      "name": "Alli Kurakkan Flour 400g",
+      "price": 545,
+      "uom": "NO",
+      "category": "G1BDR"
+    },
+    {
+      "itemCode": "16145",
+      "name": "7 Up Pet Bottle 400ml",
+      "price": 200,
+      "uom": "NO",
+      "category": "B0CQJ"
+    },
+    {
+      "itemCode": "1658",
+      "name": "Harischandra String Hopp.Flr.White 700g",
+      "price": 300,
+      "uom": "NO",
+      "category": "G1BTV"
+    },
+    {
+      "itemCode": "1703",
+      "name": "Black & Gold Popcorn 200g",
+      "price": 340,
+      "uom": "NO",
+      "category": "GSNVD"
+    },
+    {
+      "itemCode": "17826",
+      "name": "Black & Gold Devilled Dhal 100g",
+      "price": 230,
+      "uom": "NO",
+      "category": "GSNVC"
+    },
+    {
+      "itemCode": "17851",
+      "name": "Black & Gold Devilled Peanuts 100g",
+      "price": 360,
+      "uom": "NO",
+      "category": "GSNVC"
+    },
+    {
+      "itemCode": "17863",
+      "name": "Black & Gold Devilled Peanut 200g",
+      "price": 710,
+      "uom": "NO",
+      "category": "GSNVC"
+    },
+    {
+      "itemCode": "17887",
+      "name": "Black & Gold Salted Gramâ 100g",
+      "price": 250,
+      "uom": "NO",
+      "category": "GSNVC"
+    },
+    {
+      "itemCode": "17966",
+      "name": "Black & Gold Cocktail Mixture 200g",
+      "price": 460,
+      "uom": "NO",
+      "category": "GSNVB"
+    },
+    {
+      "itemCode": "17989",
+      "name": "Black & Gold Salted Dhal 100g",
+      "price": 230,
+      "uom": "NO",
+      "category": "GSNVC"
+    },
+    {
+      "itemCode": "18065",
+      "name": "Black & Gold Roasted Peanuts 100g",
+      "price": 360,
+      "uom": "NO",
+      "category": "GSNVC"
+    },
+    {
+      "itemCode": "19513",
+      "name": "Little Lion Swiss Roll Chocolate 200g",
+      "price": 520,
+      "uom": "NO",
+      "category": "CDERE"
+    },
+    {
+      "itemCode": "21325",
+      "name": "Highland Butter Salted 200g",
+      "price": 1090,
+      "uom": "NO",
+      "category": "C0ORK"
+    },
+    {
+      "itemCode": "23012",
+      "name": "Harischandra Rice Flour 400g",
+      "price": 180,
+      "uom": "NO",
+      "category": "G1BTW"
+    },
+    {
+      "itemCode": "23024",
+      "name": "Harischandra Ulundu Flour 200g",
+      "price": 450,
+      "uom": "NO",
+      "category": "G1BDU"
+    },
+    {
+      "itemCode": "23675",
+      "name": "Kist Mango Chutney 460g",
+      "price": 550,
+      "uom": "NO",
+      "category": "G1DU1"
+    },
+    {
+      "itemCode": "23687",
+      "name": "Baby Cheramy Cologne Classic 50ml",
+      "price": 380,
+      "uom": "NO",
+      "category": "H26VV"
+    },
+    {
+      "itemCode": "25677",
+      "name": "Food Link Atta Flour 1kg",
+      "price": 375,
+      "uom": "NO",
+      "category": "G1BTX"
+    },
+    {
+      "itemCode": "2594",
+      "name": "Baby Cheramy Cream 400ml",
+      "price": 1100,
+      "uom": "NO",
+      "category": "H26VV"
+    },
+    {
+      "itemCode": "2733",
+      "name": "Alli Papadam Appalam 60g",
+      "price": 140,
+      "uom": "NO",
+      "category": "G1DU2"
+    },
+    {
+      "itemCode": "27654",
+      "name": "Kelloggs Chocos 250g",
+      "price": 1040,
+      "uom": "NO",
+      "category": "G19TO"
+    },
+    {
+      "itemCode": "30405",
+      "name": "Kellogg's Chocos Duet 375g",
+      "price": 1690,
+      "uom": "NO",
+      "category": "G19TO"
+    },
+    {
+      "itemCode": "30648",
+      "name": "Anchor Butter Salted 100g",
+      "price": 690,
+      "uom": "NO",
+      "category": "C0ORK"
+    },
+    {
+      "itemCode": "30744",
+      "name": "Captain Instant Oats Pouch 800g",
+      "price": 2320,
+      "uom": "NO",
+      "category": "G19TR"
+    },
+    {
+      "itemCode": "3463",
+      "name": "Bairaha Chicken Meat Balls 200g",
+      "price": 410,
+      "uom": "NO",
+      "category": "D0XSG"
+    },
+    {
+      "itemCode": "40398",
+      "name": "4Rever Foot Crack Cream 100ml",
+      "price": 590,
+      "uom": "NO",
+      "category": "H2AV4"
+    },
+    {
+      "itemCode": "40404",
+      "name": "4Rever Face Wash Kohomba Kaha 100ml",
+      "price": 390,
+      "uom": "NO",
+      "category": "H2BW8"
+    },
+    {
+      "itemCode": "4061",
+      "name": "B/Cheramy Milk Soap Al.Oil Vit.E 5S 75g",
+      "price": 710,
+      "uom": "NO",
+      "category": "H26VV"
+    },
+    {
+      "itemCode": "41259",
+      "name": "Hope Sesame Cookies 90g",
+      "price": 370,
+      "uom": "NO",
+      "category": "GBSV5"
+    },
+    {
+      "itemCode": "41260",
+      "name": "Hope Butter Cookies 90g",
+      "price": 420,
+      "uom": "NO",
+      "category": "GBSV5"
+    },
+    {
+      "itemCode": "41261",
+      "name": "Hope Chocolate Chip Cookies 90g",
+      "price": 370,
+      "uom": "NO",
+      "category": "GBSV5"
+    },
+    {
+      "itemCode": "41892",
+      "name": "Kellogg's Rolled Oats 200g",
+      "price": 380,
+      "uom": "NO",
+      "category": "G19TR"
+    },
+    {
+      "itemCode": "41893",
+      "name": "Kellogg's Rolled Oats 400g",
+      "price": 710,
+      "uom": "NO",
+      "category": "G19TR"
+    },
+    {
+      "itemCode": "41894",
+      "name": "Kellogg's Rolled Oats 900g",
+      "price": 1580,
+      "uom": "NO",
+      "category": "G19TR"
+    },
+    {
+      "itemCode": "43128",
+      "name": "Comfort Fabric Conditioner Blue 220ml",
+      "price": 325,
+      "uom": "NO",
+      "category": "H2MOM"
+    },
+    {
+      "itemCode": "43129",
+      "name": "Comfort Fabric Conditioner Pink 220ml",
+      "price": 325,
+      "uom": "NO",
+      "category": "H2MOM"
+    },
+    {
+      "itemCode": "43130",
+      "name": "Comfort Fabric Conditioner Blue 860ml",
+      "price": 1260,
+      "uom": "NO",
+      "category": "H2MOM"
+    },
+    {
+      "itemCode": "43131",
+      "name": "Comfort Pink Fabric Conditioner 860ml",
+      "price": 1260,
+      "uom": "NO",
+      "category": "H2MOM"
+    },
+    {
+      "itemCode": "43205",
+      "name": "Hope Peanut Cookies 90g",
+      "price": 370,
+      "uom": "NO",
+      "category": "GBSV5"
+    },
+    {
+      "itemCode": "4428",
+      "name": "Baby Cheramy Cologne Spark Star 100ml",
+      "price": 540,
+      "uom": "NO",
+      "category": "H26VV"
+    },
+    {
+      "itemCode": "44805",
+      "name": "Harischandra Papadam 70g",
+      "price": 150,
+      "uom": "NO",
+      "category": "G1DU2"
+    },
+    {
+      "itemCode": "45627",
+      "name": "Black & Gold Sweet Peanut 195g",
+      "price": 650,
+      "uom": "NO",
+      "category": "G1NV9"
+    },
+    {
+      "itemCode": "4820",
+      "name": "Kelloggs Corn Flakes 475g",
+      "price": 1590,
+      "uom": "NO",
+      "category": "G19TO"
+    },
+    {
+      "itemCode": "48343",
+      "name": "Mdk String Hopper Flour White Rice 700g",
+      "price": 295,
+      "uom": "NO",
+      "category": "G1BTV"
+    },
+    {
+      "itemCode": "4881",
+      "name": "Prima Swiss Roll Strawberry 225g",
+      "price": 670,
+      "uom": "NO",
+      "category": "CDERE"
+    },
+    {
+      "itemCode": "4996",
+      "name": "Alli Thosai Mixure 400g",
+      "price": 485,
+      "uom": "NO",
+      "category": "G1BTV"
+    },
+    {
+      "itemCode": "5016",
+      "name": "Kellogg's Corn Flakes Chocos 20g",
+      "price": 70,
+      "uom": "NO",
+      "category": "G19TO"
+    },
+    {
+      "itemCode": "51536",
+      "name": "Black & Gold Cocktail Mixture 500g",
+      "price": 1150,
+      "uom": "NO",
+      "category": "GSNVB"
+    },
+    {
+      "itemCode": "7080",
+      "name": "Bounty Chocolate 57g",
+      "price": 500,
+      "uom": "NO",
+      "category": "G1NV7"
+    },
+    {
+      "itemCode": "7195",
+      "name": "Kellogg's Corn Flakes 120g",
+      "price": 370,
+      "uom": "NO",
+      "category": "G19TO"
+    },
+    {
+      "itemCode": "7230",
+      "name": "Harischandra Papadam With Rice Flour 70g",
+      "price": 150,
+      "uom": "NO",
+      "category": "G1DU2"
+    },
+    {
+      "itemCode": "7318",
+      "name": "Harischandra String Hopp.Flour Red 700g",
+      "price": 300,
+      "uom": "NO",
+      "category": "G1BTV"
+    },
+    {
+      "itemCode": "735",
+      "name": "Anchor Butter Salted 227g",
+      "price": 1390,
+      "uom": "NO",
+      "category": "C0ORK"
+    },
+    {
+      "itemCode": "76489",
+      "name": "Kellogg's Chocos 385g",
+      "price": 1600,
+      "uom": "NO",
+      "category": "G19TO"
+    },
+    {
+      "itemCode": "83331",
+      "name": "Prima Swiss Roll Chocolate 225g",
+      "price": 670,
+      "uom": "NO",
+      "category": "CDERE"
+    },
+    {
+      "itemCode": "84309",
+      "name": "Alli Hopper Mixture White Rice 400g",
+      "price": 235,
+      "uom": "NO",
+      "category": "G1BTV"
+    },
+    {
+      "itemCode": "90507",
+      "name": "Center Fresh Gum Mint 18g",
+      "price": 75,
+      "uom": "NO",
+      "category": "G1NV8"
+    },
+    {
+      "itemCode": "90926",
+      "name": "Happy Cow Cheese Cream Natural 150g",
+      "price": 1590,
+      "uom": "NO",
+      "category": "C0ORL"
+    },
+    {
+      "itemCode": "913005",
+      "name": "Bell Pepper Green",
+      "price": 1980,
+      "uom": "KG",
+      "category": "VWB66"
+    },
+    {
+      "itemCode": "913006",
+      "name": "Bell Pepper Red",
+      "price": 2690,
+      "uom": "KG",
+      "category": "VWB66"
+    },
+    {
+      "itemCode": "913007",
+      "name": "Bell Pepper Yellow",
+      "price": 2550,
+      "uom": "KG",
+      "category": "VWB66"
+    },
+    {
+      "itemCode": "914000",
+      "name": "Ash Plantains",
+      "price": 210,
+      "uom": "KG",
+      "category": "VWB66"
+    },
+    {
+      "itemCode": "914004",
+      "name": "Batana",
+      "price": 270,
+      "uom": "KG",
+      "category": "VWB66"
+    },
+    {
+      "itemCode": "914006",
+      "name": "Big Onions",
+      "price": 350,
+      "uom": "KG",
+      "category": "VWB66"
+    },
+    {
+      "itemCode": "914007",
+      "name": "Bitter Gourd",
+      "price": 440,
+      "uom": "KG",
+      "category": "VWB66"
+    },
+    {
+      "itemCode": "914008",
+      "name": "Brinjals",
+      "price": 590,
+      "uom": "KG",
+      "category": "VWB66"
+    },
+    {
+      "itemCode": "915002",
+      "name": "Beetroot",
+      "price": 340,
+      "uom": "KG",
+      "category": "VWB66"
+    },
+    {
+      "itemCode": "916001",
+      "name": "Aguna Leaves",
+      "price": 80,
+      "uom": "NO",
+      "category": "VWB66"
+    },
+    {
+      "itemCode": "916002",
+      "name": "Ambarella",
+      "price": 330,
+      "uom": "KG",
+      "category": "VWB66"
+    },
+    {
+      "itemCode": "916005",
+      "name": "Bovitiya Leaves",
+      "price": 95,
+      "uom": "NO",
+      "category": "VWB66"
+    },
+    {
+      "itemCode": "91981",
+      "name": "Harischandra Masala Papadam 70g",
+      "price": 150,
+      "uom": "NO",
+      "category": "G1DU2"
+    },
+    {
+      "itemCode": "92252",
+      "name": "Kandos Chocolate Biscuit Pudding 400g",
+      "price": 850,
+      "uom": "NO",
+      "category": "CDERJ"
+    },
+    {
+      "itemCode": "923002",
+      "name": "Avocado",
+      "price": 350,
+      "uom": "KG",
+      "category": "F0124"
+    },
+    {
+      "itemCode": "923003",
+      "name": "Banana - Ambul",
+      "price": 330,
+      "uom": "KG",
+      "category": "F01LJ"
+    },
+    {
+      "itemCode": "923007",
+      "name": "Banana - Kolikuttu",
+      "price": 630,
+      "uom": "KG",
+      "category": "F01LJ"
+    },
+    {
+      "itemCode": "923010",
+      "name": "Banana - Seeni",
+      "price": 250,
+      "uom": "KG",
+      "category": "F01LJ"
+    },
+    {
+      "itemCode": "923011",
+      "name": "Beli",
+      "price": 440,
+      "uom": "KG",
+      "category": "F0124"
+    },
+    {
+      "itemCode": "923118",
+      "name": "Al-Madina Seedless Dates 500g",
+      "price": 1100,
+      "uom": "NO",
+      "category": "FHW31"
+    },
+    {
+      "itemCode": "923119",
+      "name": "Al-Madina Cashew Dates 270g",
+      "price": 1150,
+      "uom": "NO",
+      "category": "FHW31"
+    },
+    {
+      "itemCode": "923120",
+      "name": "Al-Madina Almond Dates 270g",
+      "price": 1100,
+      "uom": "NO",
+      "category": "FHW31"
+    },
+    {
+      "itemCode": "924000",
+      "name": "Apple - Fuji",
+      "price": 2790,
+      "uom": "KG",
+      "category": "FHWLJ"
+    },
+    {
+      "itemCode": "924001",
+      "name": "Apple - Green",
+      "price": 1800,
+      "uom": "KG",
+      "category": "FHWLJ"
+    },
+    {
+      "itemCode": "924006",
+      "name": "Apple - Red Royal Gala",
+      "price": 1990,
+      "uom": "KG",
+      "category": "FHWLJ"
+    },
+    {
+      "itemCode": "924007",
+      "name": "Apple - Red",
+      "price": 3350,
+      "uom": "KG",
+      "category": "FHWLJ"
+    },
+    {
+      "itemCode": "92708",
+      "name": "Mdk Thosai Mix 400g",
+      "price": 525,
+      "uom": "NO",
+      "category": "G1BTV"
+    },
+    {
+      "itemCode": "92847",
+      "name": "Kellogg's Corn Flakes Strawberry 300g",
+      "price": 1295,
+      "uom": "NO",
+      "category": "G19TO"
+    },
+    {
+      "itemCode": "941001",
+      "name": "Alagoduwa",
+      "price": 1150,
+      "uom": "KG",
+      "category": "SFSN7"
+    },
+    {
+      "itemCode": "941006",
+      "name": "Bollu",
+      "price": 1390,
+      "uom": "KG",
+      "category": "SFSN7"
+    },
+    {
+      "itemCode": "941007",
+      "name": "Cleaned Cuttlefish",
+      "price": 2590,
+      "uom": "KG",
+      "category": "SS540"
+    },
+    {
+      "itemCode": "941024",
+      "name": "Linna",
+      "price": 1110,
+      "uom": "KG",
+      "category": "SFSN7"
+    },
+    {
+      "itemCode": "941037",
+      "name": "Paraw Small",
+      "price": 1590,
+      "uom": "KG",
+      "category": "SFSN7"
+    },
+    {
+      "itemCode": "941043",
+      "name": "Prawns Medium",
+      "price": 2490,
+      "uom": "KG",
+      "category": "SS572"
+    },
+    {
+      "itemCode": "941063",
+      "name": "Sudaya",
+      "price": 850,
+      "uom": "KG",
+      "category": "SFSN7"
+    },
+    {
+      "itemCode": "941065",
+      "name": "Sura Paraw",
+      "price": 1230,
+      "uom": "KG",
+      "category": "SFSN7"
+    },
+    {
+      "itemCode": "941067",
+      "name": "Thalapath Small",
+      "price": 2690,
+      "uom": "KG",
+      "category": "SFSN7"
+    },
+    {
+      "itemCode": "941070",
+      "name": "Tuna Fish",
+      "price": 2690,
+      "uom": "KG",
+      "category": "SFSN7"
+    },
+    {
+      "itemCode": "941161",
+      "name": "Cleaned Handella",
+      "price": 3400,
+      "uom": "KG",
+      "category": "SFSN7"
+    },
+    {
+      "itemCode": "941162",
+      "name": "Cleaned Shrimp Medium",
+      "price": 4890.01,
+      "uom": "KG",
+      "category": "SS572"
+    },
+    {
+      "itemCode": "94765",
+      "name": "Mccurrie Fried Dry Fish Keeramin 160g",
+      "price": 1300,
+      "uom": "NO",
+      "category": "G1DU3"
+    },
+    {
+      "itemCode": "951011",
+      "name": "Keells Multigrain Bread 200g",
+      "price": 350,
+      "uom": "NO",
+      "category": "KW2SP"
+    },
+    {
+      "itemCode": "951022",
+      "name": "Bread Sticks Pack",
+      "price": 160,
+      "uom": "NO",
+      "category": "KW2SP"
+    },
+    {
+      "itemCode": "952001",
+      "name": "Keells Hamburger Buns 2S",
+      "price": 220,
+      "uom": "NO",
+      "category": "KW25B"
+    },
+    {
+      "itemCode": "952002",
+      "name": "Keells Hot Dog Bun 2S",
+      "price": 220,
+      "uom": "NO",
+      "category": "KW25B"
+    },
+    {
+      "itemCode": "952003",
+      "name": "Keells Dinner Bun 4S",
+      "price": 220,
+      "uom": "NO",
+      "category": "KW25B"
+    },
+    {
+      "itemCode": "952010",
+      "name": "Keells Tea Bun 2S",
+      "price": 190,
+      "uom": "NO",
+      "category": "KW25B"
+    },
+    {
+      "itemCode": "952011",
+      "name": "Keells Cream Bun 2S",
+      "price": 230,
+      "uom": "NO",
+      "category": "KW25B"
+    },
+    {
+      "itemCode": "955365",
+      "name": "Keells Milk Toffee With Cashew 200g",
+      "price": 700,
+      "uom": "NO",
+      "category": "KW2S8"
+    },
+    {
+      "itemCode": "955366",
+      "name": "Keells Kalu Dodol With Cashew 450g",
+      "price": 1290,
+      "uom": "NO",
+      "category": "KW2S8"
+    },
+    {
+      "itemCode": "957058",
+      "name": "Kisses Large Pack",
+      "price": 340,
+      "uom": "NO",
+      "category": "KW2S8"
+    },
+    {
+      "itemCode": "957066",
+      "name": "Assorted Cookies Pack 6S",
+      "price": 260,
+      "uom": "NO",
+      "category": "KW2S8"
+    },
+    {
+      "itemCode": "9656",
+      "name": "Finagle Bread Crumbs 400g",
+      "price": 590,
+      "uom": "NO",
+      "category": "G1BTV"
+    },
+    {
+      "itemCode": "9661",
+      "name": "Finagle Butter Rusk Biscuit 80g",
+      "price": 320,
+      "uom": "NO",
+      "category": "GBSV5"
+    },
+    {
+      "itemCode": "9669",
+      "name": "Finagle Butter Biscuit 80g",
+      "price": 320,
+      "uom": "NO",
+      "category": "GBSV5"
+    },
+    {
+      "itemCode": "97011",
+      "name": "Mdk Hopper Flour 400g",
+      "price": 220,
+      "uom": "NO",
+      "category": "G1BTV"
+    },
+    {
+      "itemCode": "9716",
+      "name": "Kellogg's Muesli Nuts&Seeds Crunch 240g",
+      "price": 1670,
+      "uom": "NO",
+      "category": "G19DD"
+    },
+    {
+      "itemCode": "98763",
+      "name": "Bairaha Chicken Slices 150g",
+      "price": 750,
+      "uom": "NO",
+      "category": "D0XSH"
+    },
+    {
+      "itemCode": "98798",
+      "name": "Bairaha Chicken Sausages 300g",
+      "price": 810,
+      "uom": "NO",
+      "category": "D0X8H"
+    },
+    {
+      "itemCode": "99329",
+      "name": "Black & Gold Cassava Chips 100g",
+      "price": 280,
+      "uom": "NO",
+      "category": "GSNVA"
+    },
+    {
+      "itemCode": "99386",
+      "name": "Kellogg's Chocos 127g",
+      "price": 500,
+      "uom": "NO",
+      "category": "G19TO"
+    },
+    {
+      "itemCode": "99528",
+      "name": "Astra Fat Spread Tub 500g",
+      "price": 1120,
+      "uom": "NO",
+      "category": "C0ORM"
+    }
+  ]
+}

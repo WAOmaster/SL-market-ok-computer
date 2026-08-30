@@ -1,0 +1,4 @@
+
+# catalogue crawler working files
+tools/.fetch*.log
+scanner/data/barcodes.prev.json

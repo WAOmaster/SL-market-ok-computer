@@ -599,3 +599,20 @@ dialog h3 { margin: 0; font-size: 1.05rem; }
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+/*
+ * "3 items not yet priced" sits directly under the grand total. It has to read
+ * as a caveat on that number, not as another line of it - the whole point is
+ * that the shopper knows the total is incomplete before they reach the till.
+ */
+.totals .row.warn {
+  color: #8A5A00;
+  font-weight: 600;
+}
+
+/* A live promotion. Green because it is good news, and quiet because the
+   price beside it has already been discounted - this only explains why. */
+.pill.deal {
+  background: #E7F5EA;
+  color: #1B6B33;
+}

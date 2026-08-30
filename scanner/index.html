@@ -37,6 +37,9 @@
   <button class="tab" role="tab" id="tab-catalog" aria-selected="false" aria-controls="view-catalog">
     <span class="icon" aria-hidden="true">&#127991;</span>Catalog
   </button>
+  <button class="tab" role="tab" id="tab-history" aria-selected="false" aria-controls="view-history">
+    <span class="icon" aria-hidden="true">&#128200;</span>History
+  </button>
   <button class="tab" role="tab" id="tab-settings" aria-selected="false" aria-controls="view-settings">
     <span class="icon" aria-hidden="true">&#9881;</span>Settings
   </button>
@@ -187,6 +190,23 @@
   </section>
 
   <!-- ============ SETTINGS ============ -->
+  <section class="view" id="view-history" role="tabpanel" aria-labelledby="tab-history" hidden>
+    <div class="card">
+      <h2>What you spend</h2>
+      <p class="hint">Every finished trip is kept on this phone. Nothing is uploaded anywhere.</p>
+      <div id="historyMonths" class="totals"></div>
+    </div>
+    <div class="card">
+      <h2>Where the money goes</h2>
+      <p class="hint">Your biggest items across every trip.</p>
+      <div id="historyItems" class="totals"></div>
+    </div>
+    <div class="card">
+      <h2>Trips</h2>
+      <div id="historyTrips"></div>
+    </div>
+  </section>
+
   <section class="view" id="view-settings" role="tabpanel" aria-labelledby="tab-settings" hidden>
     <div class="split">
       <div class="card">
@@ -309,6 +329,8 @@
 <script src="js/scanlog.js"></script>
 <script src="js/label.js"></script>
 <script src="js/scanner.js"></script>
+<script src="js/resolve.js"></script>
+<script src="js/trips.js"></script>
 <script src="js/report.js"></script>
 <script src="js/api.js"></script>
 <script src="js/app.js"></script>

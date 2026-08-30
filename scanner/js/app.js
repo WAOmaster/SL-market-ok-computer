@@ -9,7 +9,7 @@
 (function () {
   'use strict';
 
-  const { barcode, catalog, cart, label, scanner, api, scanlog, report, stores } = window.SLScan;
+  const { barcode, catalog, cart, label, scanner, api, scanlog, report, stores, resolve, trips } = window.SLScan;
 
   const $ = sel => document.querySelector(sel);
   const $$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
@@ -47,11 +47,24 @@
     billStatus: $('#billStatus'),
     logStatus: $('#logStatus'),
     learnedRules: $('#learnedRules'),
-    storeChain: $('#storeChain')
+    storeChain: $('#storeChain'),
+    historyMonths: $('#historyMonths'),
+    historyItems: $('#historyItems'),
+    historyTrips: $('#historyTrips')
   };
 
   let recent = [];
   let torchAvailable = false;
+
+  /*
+   * Shelf tickets. A ticket prices the packet scanned just before it, so both
+   * of these are about not letting the camera's repeat reads do damage:
+   * ignore the same ticket read again within a moment, and only attach a
+   * ticket to a line the shopper scanned seconds ago.
+   */
+  const TICKET_REPEAT_MS = 4000;
+  const TICKET_LINK_MS = 90000;
+  let lastTicket = { code: null, at: 0 };
 
   /* ---------------- helpers ---------------- */
 
@@ -105,6 +118,7 @@
     $$('.tab').forEach(t => t.setAttribute('aria-selected', String(t.id === 'tab-' + name)));
     $$('.view').forEach(v => { v.hidden = v.id !== 'view-' + name; });
     if (name === 'catalog') renderCatalog();
+    if (name === 'history') renderHistory();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -134,9 +148,13 @@
 
   function lineHTML(item) {
     const isWeight = item.pricing === 'weight';
+    const saving = item.wasPrice && item.wasPrice > item.unitPrice
+      ? item.wasPrice - item.unitPrice : 0;
     const pills = [
       isWeight ? '<span class="pill weight">per kg</span>' : '',
-      item.priceOverride != null ? '<span class="pill override">label price</span>' : ''
+      item.priceOverride != null ? '<span class="pill override">label price</span>' : '',
+      // A promotion the shopper would otherwise only discover at the till.
+      saving ? '<span class="pill deal">was ' + money(item.wasPrice) + '</span>' : ''
     ].join('');
 
     const measure = isWeight
@@ -209,6 +227,69 @@
     el.cartLines.innerHTML = items.map(lineHTML).join('');
   }
 
+  /**
+   * The month view. Every number here comes from trips already on this phone -
+   * there is nothing to fetch, and nothing leaves the device.
+   */
+  function renderHistory() {
+    const months = trips.monthly();
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    if (!months.length) {
+      el.historyMonths.innerHTML =
+        '<p class="hint">No finished trips yet. Scan a shop, then tap ' +
+        '&ldquo;Empty the trolley&rdquo; when you are done and it will be kept here.</p>';
+      el.historyItems.innerHTML = '';
+      el.historyTrips.innerHTML = '';
+      return;
+    }
+
+    el.historyMonths.innerHTML = months.map(m => {
+      // An estimate is a trip whose till total was never entered, so it is
+      // still the app's arithmetic rather than what the card was charged.
+      const caveat = m.estimated
+        ? ' <span class="hint">(' + m.estimated + ' estimated)</span>'
+        : '';
+      return '<div class="row"><span>' + escapeHtml(m.month) + ' &middot; ' +
+        m.trips + (m.trips === 1 ? ' trip' : ' trips') + caveat + '</span><span>' +
+        money(m.total) + '</span></div>';
+    }).join('');
+
+    el.historyItems.innerHTML = trips.topItems(8).map(i =>
+      '<div class="row"><span>' + escapeHtml(i.name) +
+      ' <span class="hint">&times;' + i.times + '</span></span><span>' +
+      money(i.spend) + '</span></div>').join('') ||
+      '<p class="hint">Nothing recorded yet.</p>';
+
+    el.historyTrips.innerHTML = trips.list().map(t => {
+      const d = new Date(t.savedAt);
+      const when = isNaN(d) ? t.savedAt
+        : dayNames[d.getDay()] + ' ' + d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear();
+      const paid = t.tillTotal != null && t.tillTotal > 0;
+      const bits = [t.itemCount + ' items'];
+      if (t.unpriced) bits.push(t.unpriced + ' unpriced');
+      if (!paid) bits.push('estimate');
+      return '<div class="line">' +
+        '<div class="name">' + escapeHtml(t.store || 'Trip') + '</div>' +
+        '<div class="total">' + money(paid ? t.tillTotal : t.total) + '</div>' +
+        '<div class="meta">' + escapeHtml(when) + ' &middot; ' + bits.join(' &middot; ') + '</div>' +
+        '<div class="controls">' +
+          '<button type="button" class="btn small danger" data-deltrip="' + escapeHtml(t.id) + '">Remove</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  if (el.historyTrips) {
+    el.historyTrips.addEventListener('click', ev => {
+      const btn = ev.target.closest('[data-deltrip]');
+      if (!btn) return;
+      if (!window.confirm('Remove this trip from your history? This cannot be undone.')) return;
+      trips.remove(btn.dataset.deltrip);
+      renderHistory();
+    });
+  }
+
   function renderTotals() {
     const t = cart.totals();
     const rows = [
@@ -223,6 +304,16 @@
     let html = rows.map(r =>
       '<div class="row"><span>' + r[0] + '</span><span>' + r[1] + '</span></div>').join('');
     html += '<div class="row grand"><span>Total</span><span>' + money(t.total) + '</span></div>';
+
+    /*
+     * Say plainly when the total is incomplete. A running total that silently
+     * omits three unpriced packets is worse than no total at all - the shopper
+     * plans around it and is caught out at the till.
+     */
+    if (t.unpriced) {
+      html += '<div class="row warn"><span>Not yet priced</span><span>' +
+        t.unpriced + (t.unpriced === 1 ? ' item' : ' items') + '</span></div>';
+    }
 
     if (t.budget > 0) {
       const pct = Math.min(100, (t.total / t.budget) * 100);
@@ -317,6 +408,128 @@
     }
 
     /*
+     * A shelf-edge ticket, not a product.
+     *
+     * Keells prints one under every facing, carrying the item code the till
+     * uses. Scanning it is the shopper's way of telling the app exactly which
+     * Keells product they are holding - which no barcode can do, because
+     * nothing published maps an EAN-13 to a Keells item code.
+     *
+     * So a ticket does two jobs: it prices the packet just scanned, and it
+     * records that packet's barcode against the item code for good. One ticket
+     * scan, once per product, and the aisle knows that product's price for
+     * ever afterwards.
+     */
+    /*
+     * Half a ticket. The camera caught the item code and then lost the rest, so
+     * there is no price to read and nothing to add - the packet it belongs to
+     * is already in the trolley waiting. Ask for another look rather than
+     * inventing a line out of the fragment.
+     */
+    if (parsed.type === 'shelf-partial') {
+      beep(false);
+      setStatus(el.scanStatus, 'Only half that shelf ticket came through - hold steady and scan it again.', 'warn');
+      scanlog.record({
+        source: source, engine: info.engine, raw: raw, parsed: parsed,
+        outcome: 'rejected', message: 'Partial shelf-ticket read; not added.'
+      });
+      updateLogStatus();
+      return;
+    }
+
+    if (parsed.type === 'shelf') {
+      /*
+       * A camera pointed at a ticket reads it many times a second. Without a
+       * guard one ticket fired six times in nine seconds and priced four
+       * different products - a real trolley came out at Rs 6,830 of things the
+       * shopper had not chosen.
+       */
+      // Keyed on the item code, not the raw text: the camera renders the
+      // ticket's separator differently on each pass, so the same ticket arrives
+      // as several different strings and a raw-text guard never catches it.
+      if (lastTicket.code === parsed.itemCode && Date.now() - lastTicket.at < TICKET_REPEAT_MS) {
+        return;
+      }
+      lastTicket = { code: parsed.itemCode, at: Date.now() };
+
+      const priced = resolve.byItemCode(parsed.itemCode);
+
+      /*
+       * Which line does a ticket belong to? Only the one the shopper scanned
+       * immediately before it - they picked up a packet, then pointed at the
+       * ticket beneath it.
+       *
+       * It used to take *any* unpriced line, which is how the Sunlight ticket
+       * priced a packet scanned two minutes earlier, and then priced two other
+       * shelf tickets that had themselves been mistaken for products. So:
+       * the newest line only, still unpriced, scanned moments ago, and never a
+       * line that is itself a ticket.
+       */
+      const newest = cart.items()[0];
+      const fresh = newest && newest.addedAt &&
+        (Date.now() - new Date(newest.addedAt).getTime()) < TICKET_LINK_MS;
+      const isTicket = newest && barcode.parse(newest.barcode || newest.code).type === 'shelf';
+      const pending = (newest && newest.unpriced && fresh && !isTicket) ? newest : null;
+
+      if (!priced) {
+        beep(false);
+        setStatus(el.scanStatus, 'Shelf ticket for item ' + parsed.itemCode +
+          ' - that code is not in the price list yet.', 'warn');
+        scanlog.record({
+          source: source, engine: info.engine, raw: raw, parsed: parsed,
+          outcome: 'prompted', message: 'Shelf ticket scanned; item code unknown to the price list.'
+        });
+        updateLogStatus();
+        return;
+      }
+
+      if (!pending) {
+        beep(true);
+        setStatus(el.scanStatus, priced.name + ' - ' + money(priced.price) +
+          '. Scan the packet first and the ticket will price it.', 'ok');
+        scanlog.record({
+          source: source, engine: info.engine, raw: raw, parsed: parsed, product: priced,
+          outcome: 'added', message: 'Shelf ticket read; nothing waiting to be priced.'
+        });
+        updateLogStatus();
+        return;
+      }
+
+      cart.update(pending.id, {
+        name: pending.nameSource ? pending.name : priced.name,
+        unitPrice: priced.price,
+        pricing: priced.uom === 'KG' ? 'weight' : 'unit'
+      });
+
+      // Remember it. The barcode on the packet now has a Keells price against
+      // it, so the next trip prices this product the instant it is scanned.
+      if (pending.barcode) {
+        catalog.upsert({
+          code: pending.barcode,
+          name: pending.nameSource ? pending.name : priced.name,
+          unitPrice: priced.price,
+          pricing: priced.uom === 'KG' ? 'weight' : 'unit',
+          unit: priced.uom === 'KG' ? 'kg' : 'pc',
+          category: pending.category,
+          store: chain() || 'keells'
+        });
+      }
+
+      beep(true);
+      setStatus(el.scanStatus, priced.name + ' - ' + money(priced.price) +
+        ' (learned from the shelf ticket).', 'ok');
+      scanlog.record({
+        source: source, engine: info.engine, raw: raw, parsed: parsed, product: priced,
+        outcome: 'confirmed',
+        message: 'Shelf ticket priced ' + (pending.barcode || pending.code) +
+          ' at item ' + parsed.itemCode + '; saved to the catalog.'
+      });
+      updateLogStatus();
+      render();
+      return;
+    }
+
+    /*
      * A price recorded at another chain is a starting point, not a price. The
      * item codes collide across chains and the prices differ, so it is offered
      * in the dialog, prefilled, for the shopper to check against the shelf.
@@ -347,27 +560,64 @@
       return;
     }
 
+    /*
+     * An unknown code must NEVER stop the shopper.
+     *
+     * This used to open the item dialog and wait for a name and a price. In an
+     * aisle, one hand on a trolley, that fires on most of a first shop - and
+     * people quit. The line goes into the trolley unpriced instead, the offline
+     * table names it if it can, and the running total says how many lines are
+     * still waiting. The bill fills the prices in afterwards, or the shopper
+     * taps the line when it suits them.
+     */
     if (!product) {
-      beep(false);
-      setStatus(el.scanStatus, 'Code ' + parsed.code + ' is new - tell me what it is once and I will remember it.', 'warn');
-      scanlog.record({
-        source: source, engine: info.engine, raw: raw, parsed: parsed,
-        outcome: 'prompted', message: 'Code not in the catalog; asked the shopper.'
-      });
-      updateLogStatus();
-      openItemDialog({
-        code: parsed.itemCode,
+      const named = resolve.lookupSync(parsed);
+      const embeddedPrice = parsed.best && parsed.best.kind === 'price' ? parsed.best.totalPrice : null;
+      const weighed = parsed.best && parsed.best.kind === 'weight' ? parsed.best : null;
+
+      // A shelf price from the pre-joined Keells table is the real thing, not
+      // an estimate: the barcode was matched to a Keells item code offline and
+      // this is that item's price. It is what makes a scan answer "what will
+      // this cost" instead of merely "what is this".
+      const shelfPrice = named && named.price > 0 ? named.price : 0;
+
+      const outcome = cart.add({
+        code: parsed.itemCode || parsed.code,
         // The code exactly as scanned - the format is learned from this, and
         // padding it to 13 digits would move the field.
         barcode: parsed.code,
-        decoded: parsed.type === 'embedded',
-        pricing: parsed.best && parsed.best.kind === 'weight' ? 'weight' : 'unit',
-        weightKg: parsed.best && parsed.best.weightKg ? parsed.best.weightKg : 0,
-        unusualWeight: !!(parsed.best && parsed.best.unusualWeight),
-        priceOverride: parsed.best && parsed.best.kind === 'price' ? parsed.best.totalPrice : null,
+        name: named ? named.name : ('Unknown item ' + parsed.code),
+        category: named && named.category ? named.category : 'Other',
+        nameSource: named ? 'barcodes' : '',
+        pricing: weighed ? 'weight' : 'unit',
+        weightKg: weighed ? weighed.weightKg : 0,
+        unitPrice: shelfPrice,
+        // A scale label that carries its own total price is already priced.
+        priceOverride: embeddedPrice,
+        unpriced: embeddedPrice == null && !shelfPrice,
         source: source
       });
-      return;
+
+      beep(!!named);
+      setStatus(el.scanStatus,
+        shelfPrice
+          ? named.name + ' - ' + money(shelfPrice) +
+            (named.ambiguous ? ' (two barcodes share this item, check the shelf)' : '')
+          : named
+            ? named.name + ' added - no price yet, the bill will fill it in.'
+            : 'Added as unpriced. Carry on; you can name it later.',
+        shelfPrice && !named.ambiguous ? 'ok' : 'warn');
+      scanlog.record({
+        source: source, engine: info.engine, raw: raw, parsed: parsed,
+        product: named || null,
+        outcome: 'added',
+        message: named
+          ? (named.price > 0 ? 'Named and priced from the Keells join.' : 'Named from the offline barcode table; added unpriced.')
+          : 'Unknown code; added unpriced rather than stopping the shopper.'
+      });
+      updateLogStatus();
+      render();
+      return outcome;
     }
 
     const line = {
@@ -378,6 +628,9 @@
       pricing: product.pricing,
       unit: product.unit,
       unitPrice: product.unitPrice,
+      // Carried so the line can show "was Rs 790" when Keells has a promotion
+      // running. unitPrice is already the discounted one.
+      wasPrice: product.wasPrice || null,
       qty: 1,
       weightKg: 0,
       source: source
@@ -793,6 +1046,15 @@
   $('#btnClear').addEventListener('click', () => {
     if (!cart.items().length) return;
     if (!window.confirm('Empty the trolley and start a new trip? The scan log is cleared too.')) return;
+    // Keep the finished trip before throwing the trolley away. This is the
+    // whole difference between an adding machine and a spending record - the
+    // app built this report already, it was just never kept.
+    try {
+      const saved = trips.save(report.build());
+      setStatus(el.exportStatus, 'Trip saved to history (' + money(saved.total) + ').', 'ok');
+    } catch (err) {
+      console.warn('Trip could not be saved to history.', err);
+    }
     // A new trip starts a new log, so an export never mixes two trips together.
     cart.clear();
     scanlog.clear();
@@ -1164,6 +1426,19 @@
   }
 
   window.addEventListener('beforeunload', () => { scanner.stop(); });
+
+  /*
+   * Warm the offline barcode table now, not on the first scan. It is one file
+   * fetched once; doing it at the shelf would add a stall to exactly the moment
+   * that has to feel instant. A failure here is silent by design - the app
+   * still scans, unknown packets just stay unnamed.
+   */
+  resolve.load().then(() => {
+    const info = resolve.info();
+    if (info.count) {
+      console.info('Barcode table ready: ' + info.count + ' products from ' + info.source);
+    }
+  });
 
   // Keep the scan box focused on desktop so a USB/Bluetooth barcode gun,
   // which simply types digits and presses Enter, works with no extra setup.
