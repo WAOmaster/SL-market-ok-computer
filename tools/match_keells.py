@@ -120,11 +120,29 @@ def token_score(a, b):
 
 
 def match(barcodes, catalogue, threshold=0.62):
+    """
+    Compare every barcode name against the catalogue.
+
+    Done naively this is one string-similarity call per pair - 5,875 barcodes
+    against 10,000 products is sixty million of them, which does not finish in
+    any useful time. Two prunings fix that without changing a single result:
+
+      * Only consider products sharing at least one word. With no shared word
+        the Jaccard term is zero and the score cannot exceed 0.3, which is below
+        any usable threshold, so those pairs were never going to match.
+      * Skip the expensive sequence comparison when even a perfect result could
+        not beat the best score so far.
+    """
     cat = []
     for item in catalogue:
         n = normalize(item['name'])
         if n['tokens']:
             cat.append((item, n))
+
+    by_token = {}
+    for idx, (_, n) in enumerate(cat):
+        for tok in n['tokens']:
+            by_token.setdefault(tok, []).append(idx)
 
     out, stats = {}, {'exact': 0, 'quantity': 0, 'fuzzy': 0, 'unmatched': 0,
                       'rejected_quantity': 0}
@@ -134,9 +152,20 @@ def match(barcodes, catalogue, threshold=0.62):
             stats['unmatched'] += 1
             continue
 
+        candidates = set()
+        for tok in bn['tokens']:
+            candidates.update(by_token.get(tok, ()))
+
         best, best_score, blocked = None, 0.0, False
-        for item, cn in cat:
-            score = token_score(bn, cn)
+        sa = set(bn['tokens'])
+        for idx in candidates:
+            item, cn = cat[idx]
+            sb = set(cn['tokens'])
+            jac = len(sa & sb) / len(sa | sb)
+            # Best possible score if the string similarity came back perfect.
+            if 0.7 * jac + 0.3 <= best_score:
+                continue
+            score = 0.7 * jac + 0.3 * SequenceMatcher(None, bn['text'], cn['text']).ratio()
             if score <= best_score:
                 continue
             if not quantities_agree(bn, cn):
@@ -155,10 +184,16 @@ def match(barcodes, catalogue, threshold=0.62):
                   else 'quantity' if cn['qty'] is not None and best_score >= 0.85
                   else 'fuzzy')
         stats[method] += 1
+        # A catalogue row may have no price. The sitemap gives item codes and
+        # names for the whole shop but no prices, and that is still worth
+        # matching: it establishes barcode -> item code, which is the link
+        # nothing published provides. The price arrives later from a shelf
+        # ticket or a bill, and lands on a product we can already name.
+        price = float(item.get('price') or 0)
         out[p['code']] = {
             'itemCode': item['itemCode'],
             'name': item['name'],
-            'price': round(float(item['price']), 2),
+            'price': round(price, 2),
             'uom': item.get('uom', 'NO'),
             'method': method,
             'confidence': round(best_score, 3),
@@ -235,11 +270,16 @@ def main(barcodes_path, catalogue_path, out_path):
     items = {}
     for it in catalogue:
         code = str(it['itemCode']).lstrip('0') or str(it['itemCode'])
-        items[code] = {
+        row = {
             'name': it['name'],
-            'price': round(float(it['price']), 2),
+            'price': round(float(it.get('price') or 0), 2),
             'uom': it.get('uom', 'NO'),
         }
+        # Keep a row even with no price. A ticket for it can then say
+        # "KEELLS TURMERIC POWDER 100G - price not known yet" instead of
+        # "unknown item code", which is the difference between a named line the
+        # bill can settle and a dead end in the aisle.
+        items[code] = row
 
     doc = {
         'format': 'slscan.prices.v1',
