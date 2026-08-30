@@ -1,0 +1,230 @@
+#!/usr/bin/env python3
+"""
+Join the barcode table to the Keells catalogue, so a scanned packet shows the
+exact Keells shelf price rather than an estimate.
+
+    barcodes.json     barcode -> product name        (globalfoodcity mirror)
+    keells-catalogue  name -> item code -> price     (One Market's Keells scrape)
+                 match on name
+    prices.json       barcode -> item code -> price  <- what the scanner reads
+
+Why a join at all: no source anywhere maps a barcode to a Keells price. Keells'
+site does not index EAN-13 at all - searching one returns "no results" - and
+neither do Cargills or SPAR. The two halves exist separately and nowhere
+together, so the table has to be built, once, offline.
+
+Normalisation follows One Market's productMatchingService: fix the till's
+abbreviations, pull the quantity out, drop the brand and the marketing noise,
+compare what is left.
+
+THE RULE THAT MATTERS: quantity and unit must agree exactly. "Maliban Lemon
+Puff 200g" and "Maliban Lemon Puff 400g" are different SKUs at different
+prices, and a matcher that treats them as one charges the shopper for the wrong
+packet. Everything else here is a heuristic; this is not.
+"""
+import json, re, sys, unicodedata
+from difflib import SequenceMatcher
+
+# Till descriptions are abbreviated to fit a receipt; product listings are not.
+SPELLING = {
+    'pwd': 'powder', 'pdr': 'powder', 'pwdr': 'powder', 'coc': 'coconut',
+    'chix': 'chicken', 'chkn': 'chicken', 'brn': 'brown', 'wht': 'white',
+    'org': 'organic', 'veg': 'vegetable', 'vegs': 'vegetables',
+    'tom': 'tomato', 'pot': 'potato', 'basmathi': 'basmati',
+    'h/wash': 'handwash', 'f/c': 'full cream', 's/l': 'sliced',
+    'w/m': 'whole milk', 'ltr': 'l', 'uht': 'uht', 'btl': 'bottle',
+}
+
+# Words that describe packaging or puffery, not the product.
+NOISE = re.compile(
+    r'\b(fresh|premium|quality|best|super|special|pack|packet|value|offer|bag|'
+    r'box|bottle|can|tin|jar|pouch|sachet|tetra|imported|local|sri lankan|'
+    r'ceylon|new|original)\b', re.I)
+
+QTY = re.compile(r'(\d+(?:\.\d+)?)\s*(kg|kgs|g|gm|gms|mg|l|ltr|ltrs|litre|ml|cl|'
+                 r'pcs|pc|nos|rolls?|pack|x)\b', re.I)
+
+UNIT_CANON = {
+    'kgs': 'kg', 'gm': 'g', 'gms': 'g', 'ltr': 'l', 'ltrs': 'l', 'litre': 'l',
+    'pc': 'pcs', 'nos': 'pcs', 'roll': 'rolls',
+}
+# Grams and millilitres are the same number on a label often enough that
+# comparing 200G against 200ML would look like a match. They are not - keep the
+# dimension, only fold synonyms of the same dimension together.
+TO_BASE = {'kg': ('mass', 1000.0), 'g': ('mass', 1.0), 'mg': ('mass', 0.001),
+           'l': ('vol', 1000.0), 'ml': ('vol', 1.0), 'cl': ('vol', 10.0),
+           'pcs': ('count', 1.0), 'rolls': ('count', 1.0)}
+
+
+def strip_accents(s):
+    return ''.join(c for c in unicodedata.normalize('NFKD', s)
+                   if not unicodedata.combining(c))
+
+
+def extract_quantity(text):
+    """Return (base_value, dimension, text_without_quantity).
+
+    A '10X' multiplier ("HARPIC POWER PLUS 10X 500ML") is a marketing claim,
+    not a size, so it is dropped rather than read as a quantity.
+    """
+    text = re.sub(r'\b\d+\s*x\b', ' ', text, flags=re.I)
+    best = None
+    for m in QTY.finditer(text):
+        unit = UNIT_CANON.get(m.group(2).lower(), m.group(2).lower())
+        if unit not in TO_BASE:
+            continue
+        dim, mult = TO_BASE[unit]
+        # The largest stated size is the pack size; a "2 x 100g" style trailing
+        # number is usually the smaller one.
+        cand = (float(m.group(1)) * mult, dim, m.group(0))
+        if best is None or cand[0] > best[0]:
+            best = cand
+    if not best:
+        return None, None, text
+    return best[0], best[1], text.replace(best[2], ' ')
+
+
+def normalize(name):
+    """Reduce a product name to the words that identify the product itself."""
+    t = strip_accents(str(name or '')).lower().strip()
+    t = t.replace('&', ' and ')
+    for abbrev, full in SPELLING.items():
+        t = re.sub(r'(?<![a-z])' + re.escape(abbrev) + r'(?![a-z])', full, t)
+    qty, dim, t = extract_quantity(t)
+    t = NOISE.sub(' ', t)
+    t = re.sub(r'[^a-z0-9\s]', ' ', t)
+    tokens = [w for w in t.split() if len(w) > 1]
+    return {'tokens': sorted(set(tokens)), 'text': ' '.join(tokens),
+            'qty': qty, 'dim': dim}
+
+
+def quantities_agree(a, b):
+    """Both sides silent about size = fine. Both stated = must be equal."""
+    if a['qty'] is None and b['qty'] is None:
+        return True
+    if a['qty'] is None or b['qty'] is None:
+        return False
+    if a['dim'] != b['dim']:
+        return False
+    return abs(a['qty'] - b['qty']) < 0.001
+
+
+def token_score(a, b):
+    """Jaccard on the identifying words, nudged by raw string similarity."""
+    sa, sb = set(a['tokens']), set(b['tokens'])
+    if not sa or not sb:
+        return 0.0
+    jac = len(sa & sb) / len(sa | sb)
+    seq = SequenceMatcher(None, a['text'], b['text']).ratio()
+    return 0.7 * jac + 0.3 * seq
+
+
+def match(barcodes, catalogue, threshold=0.62):
+    cat = []
+    for item in catalogue:
+        n = normalize(item['name'])
+        if n['tokens']:
+            cat.append((item, n))
+
+    out, stats = {}, {'exact': 0, 'quantity': 0, 'fuzzy': 0, 'unmatched': 0,
+                      'rejected_quantity': 0}
+    for p in barcodes:
+        bn = normalize(p['name'])
+        if not bn['tokens']:
+            stats['unmatched'] += 1
+            continue
+
+        best, best_score, blocked = None, 0.0, False
+        for item, cn in cat:
+            score = token_score(bn, cn)
+            if score <= best_score:
+                continue
+            if not quantities_agree(bn, cn):
+                # Same words, different size: a real product, wrong packet.
+                if score >= threshold:
+                    blocked = True
+                continue
+            best, best_score = (item, cn), score
+
+        if not best or best_score < threshold:
+            stats['rejected_quantity' if blocked else 'unmatched'] += 1
+            continue
+
+        item, cn = best
+        method = ('exact' if best_score >= 0.995
+                  else 'quantity' if cn['qty'] is not None and best_score >= 0.85
+                  else 'fuzzy')
+        stats[method] += 1
+        out[p['code']] = {
+            'itemCode': item['itemCode'],
+            'name': item['name'],
+            'price': round(float(item['price']), 2),
+            'uom': item.get('uom', 'NO'),
+            'method': method,
+            'confidence': round(best_score, 3),
+            'scannedName': p['name'],
+        }
+
+
+    return flag_collisions(out, stats)
+
+
+def flag_collisions(out, stats):
+    """
+    Two barcodes claiming the same Keells item code cannot both be that packet.
+
+    Sometimes it is innocent - one product, reissued barcode. Sometimes it is
+    two real variants ("Sunlight Matic 1L" and "Sunlight Matic 1L Rose Value
+    Pack") collapsing onto whichever one the catalogue happens to list. The
+    matcher cannot tell those apart, so it does not pretend to: the best-scoring
+    barcode keeps the match cleanly and the rest are marked ambiguous. They
+    still show a price - it is the right price for *a* packet of that item - but
+    the scanner labels it, and the bill settles it for good.
+    """
+    by_item = {}
+    for code, m in out.items():
+        by_item.setdefault(m['itemCode'], []).append(code)
+
+    for item_code, codes in by_item.items():
+        if len(codes) < 2:
+            continue
+        codes.sort(key=lambda c: out[c]['confidence'], reverse=True)
+        for c in codes[1:]:
+            out[c]['ambiguous'] = True
+            stats['ambiguous'] = stats.get('ambiguous', 0) + 1
+    return out, stats
+
+
+def main(barcodes_path, catalogue_path, out_path):
+    barcodes = json.load(open(barcodes_path, encoding='utf-8'))['products']
+    cat_doc = json.load(open(catalogue_path, encoding='utf-8'))
+    catalogue = cat_doc['items']
+
+    prices, stats = match(barcodes, catalogue)
+
+    doc = {
+        'format': 'slscan.prices.v1',
+        'store': 'keells',
+        'outlet': cat_doc.get('outlet', ''),
+        'source': cat_doc.get('source', ''),
+        'catalogueCapturedAt': cat_doc.get('capturedAt', ''),
+        'builtAt': __import__('time').strftime('%Y-%m-%dT%H:%M:%SZ',
+                                               __import__('time').gmtime()),
+        'count': len(prices),
+        'prices': prices,
+    }
+    with open(out_path, 'w', encoding='utf-8') as f:
+        json.dump(doc, f, ensure_ascii=False, separators=(',', ':'))
+
+    print(f"barcodes {len(barcodes)}  x  keells catalogue {len(catalogue)}")
+    for k, v in stats.items():
+        print(f"  {k:20} {v}")
+    print(f"wrote {len(prices)} priced barcodes -> {out_path}")
+    return 0
+
+
+if __name__ == '__main__':
+    a = sys.argv[1:]
+    sys.exit(main(a[0] if a else 'scanner/data/barcodes.json',
+                  a[1] if len(a) > 1 else 'tools/fixtures/keells-catalogue.json',
+                  a[2] if len(a) > 2 else 'scanner/data/prices.json'))

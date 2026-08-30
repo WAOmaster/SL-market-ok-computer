@@ -439,6 +439,12 @@
       const embeddedPrice = parsed.best && parsed.best.kind === 'price' ? parsed.best.totalPrice : null;
       const weighed = parsed.best && parsed.best.kind === 'weight' ? parsed.best : null;
 
+      // A shelf price from the pre-joined Keells table is the real thing, not
+      // an estimate: the barcode was matched to a Keells item code offline and
+      // this is that item's price. It is what makes a scan answer "what will
+      // this cost" instead of merely "what is this".
+      const shelfPrice = named && named.price > 0 ? named.price : 0;
+
       const outcome = cart.add({
         code: parsed.itemCode || parsed.code,
         // The code exactly as scanned - the format is learned from this, and
@@ -449,22 +455,28 @@
         nameSource: named ? 'barcodes' : '',
         pricing: weighed ? 'weight' : 'unit',
         weightKg: weighed ? weighed.weightKg : 0,
+        unitPrice: shelfPrice,
         // A scale label that carries its own total price is already priced.
         priceOverride: embeddedPrice,
-        unpriced: embeddedPrice == null,
+        unpriced: embeddedPrice == null && !shelfPrice,
         source: source
       });
 
       beep(!!named);
-      setStatus(el.scanStatus, named
-        ? named.name + ' added - no price yet, the bill will fill it in.'
-        : 'Added as unpriced. Carry on; you can name it later.', 'warn');
+      setStatus(el.scanStatus,
+        shelfPrice
+          ? named.name + ' - ' + money(shelfPrice) +
+            (named.ambiguous ? ' (two barcodes share this item, check the shelf)' : '')
+          : named
+            ? named.name + ' added - no price yet, the bill will fill it in.'
+            : 'Added as unpriced. Carry on; you can name it later.',
+        shelfPrice && !named.ambiguous ? 'ok' : 'warn');
       scanlog.record({
         source: source, engine: info.engine, raw: raw, parsed: parsed,
         product: named || null,
         outcome: 'added',
         message: named
-          ? 'Named from the offline barcode table; added unpriced.'
+          ? (named.price > 0 ? 'Named and priced from the Keells join.' : 'Named from the offline barcode table; added unpriced.')
           : 'Unknown code; added unpriced rather than stopping the shopper.'
       });
       updateLogStatus();

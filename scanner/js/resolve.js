@@ -14,9 +14,11 @@
  * stalls at the shelf is worse than no lookup, and hammering a small shop's
  * website once per scan would be rude.
  *
- * IDENTITY ONLY - names, categories, images. No prices: the table's prices run
- * 5-10% below Keells, so they would be wrong at the shelf. The price comes from
- * the shop you are standing in, or from the bill afterwards.
+ * The mirror itself carries identity only - names, categories, images. Its own
+ * prices are NOT used: they run 5-10% below Keells and would be wrong at the
+ * shelf. The price comes from `data/prices.json`, where tools/match_keells.py
+ * has already joined each barcode to a Keells item code and its real shelf
+ * price by matching product names offline.
  */
 (function (root, factory) {
   const api = factory(root.SLScan && root.SLScan.barcode ? root.SLScan.barcode : require('./barcode.js'));
@@ -27,10 +29,18 @@
   'use strict';
 
   const DATA_URL = 'data/barcodes.json';
+  /*
+   * barcode -> Keells item code -> exact shelf price, pre-joined offline by
+   * tools/match_keells.py. This is what makes a scan show the real price
+   * instead of a guess: no supermarket resolves an EAN-13, so the join has to
+   * be computed ahead of time and shipped.
+   */
+  const PRICE_URL = 'data/prices.json';
 
   let table = null;      // code -> record, once loaded
+  let prices = null;     // code -> { itemCode, price, ... }
   let loading = null;    // in-flight promise, so concurrent scans load it once
-  let meta = { source: '', builtAt: '', count: 0 };
+  let meta = { source: '', builtAt: '', count: 0, priced: 0, store: '' };
 
   function index(products) {
     const map = {};
@@ -50,8 +60,22 @@
   /** Used by the tests, and by anyone who wants to supply their own table. */
   function setTable(products, info) {
     table = index(products);
-    meta = Object.assign({ source: 'injected', builtAt: '', count: Object.keys(table).length }, info || {});
+    meta = Object.assign({ source: 'injected', builtAt: '',
+      count: Object.keys(table).length, priced: prices ? Object.keys(prices).length : 0 },
+      info || {});
     return meta.count;
+  }
+
+  /** Same, for the barcode -> Keells price join. */
+  function setPrices(map, info) {
+    prices = {};
+    Object.keys(map || {}).forEach(k => {
+      const code = barcode.normalize(k);
+      if (code && map[k] && Number(map[k].price) > 0) prices[code] = map[k];
+    });
+    meta.priced = Object.keys(prices).length;
+    if (info && info.store) meta.store = info.store;
+    return meta.priced;
   }
 
   /**
@@ -66,19 +90,24 @@
       table = {};
       return Promise.resolve(table);
     }
-    loading = fetch(DATA_URL)
-      .then(r => (r.ok ? r.json() : null))
-      .then(data => {
+    // Both files are fetched together, and a failure in either is survivable:
+    // no names means unnamed packets, no prices means unpriced ones. Neither
+    // may break a scan.
+    const grab = url => fetch(url).then(r => (r.ok ? r.json() : null)).catch(() => null);
+
+    loading = Promise.all([grab(DATA_URL), grab(PRICE_URL)])
+      .then(([data, priceDoc]) => {
         if (data && Array.isArray(data.products)) {
           setTable(data.products, { source: data.source || '', builtAt: data.builtAt || '' });
         } else {
+          console.warn('Barcode table unavailable; unknown packets will stay unnamed.');
           table = {};
         }
-        return table;
-      })
-      .catch(err => {
-        console.warn('Barcode table unavailable; unknown packets will stay unnamed.', err);
-        table = {};
+        if (priceDoc && priceDoc.prices) {
+          setPrices(priceDoc.prices, { store: priceDoc.store || '' });
+        } else {
+          prices = {};
+        }
         return table;
       })
       .finally(() => { loading = null; });
@@ -110,7 +139,20 @@
 
     for (const t of tries) {
       const code = barcode.normalize(t);
-      if (code && table[code]) return table[code];
+      if (!code || !table[code]) continue;
+      const hit = table[code];
+      const p = prices && prices[code];
+      if (!p) return hit;
+      // The price is the whole point, so it travels with the identity.
+      return Object.assign({}, hit, {
+        itemCode: p.itemCode,
+        price: Number(p.price) || 0,
+        uom: p.uom || 'NO',
+        storeName: p.name || '',
+        ambiguous: !!p.ambiguous,
+        matchMethod: p.method || '',
+        matchConfidence: p.confidence
+      });
     }
     return null;
   }
@@ -123,5 +165,5 @@
     return Object.assign({}, meta, { loaded: !!table });
   }
 
-  return { load, lookup, lookupSync, setTable, info, DATA_URL };
+  return { load, lookup, lookupSync, setTable, setPrices, info, DATA_URL, PRICE_URL };
 });

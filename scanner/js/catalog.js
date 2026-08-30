@@ -174,7 +174,19 @@
         const other = Object.keys(map)
           .filter(k => k.endsWith('|' + code))
           .map(k => map[k])[0];
-        if (other) elsewhere = Object.assign({}, other, { fromOtherStore: true });
+        /*
+         * Only call a price "from another chain" when we actually know which
+         * chain we are in. With no store set, every seeded Keells price looked
+         * foreign and the shopper was interrupted for products the app had
+         * verified against their own bill - which is precisely the interruption
+         * the aisle rule exists to prevent. Unknown store means unverified, not
+         * wrong: use the price and mark it, do not stop and ask.
+         */
+        if (other) {
+          elsewhere = store
+            ? Object.assign({}, other, { fromOtherStore: true })
+            : Object.assign({}, other, { storeUnknown: true });
+        }
       }
     }
     return elsewhere;
