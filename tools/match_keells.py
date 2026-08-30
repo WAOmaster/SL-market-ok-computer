@@ -202,6 +202,19 @@ def main(barcodes_path, catalogue_path, out_path):
 
     prices, stats = match(barcodes, catalogue)
 
+    # Every catalogue row, keyed by item code. A shelf-edge tag scans as its
+    # item code, so this prices a product the moment the shopper points the
+    # camera at the ticket - no name matching involved, and it covers the whole
+    # catalogue rather than only the rows a barcode happened to match.
+    items = {}
+    for it in catalogue:
+        code = str(it['itemCode']).lstrip('0') or str(it['itemCode'])
+        items[code] = {
+            'name': it['name'],
+            'price': round(float(it['price']), 2),
+            'uom': it.get('uom', 'NO'),
+        }
+
     doc = {
         'format': 'slscan.prices.v1',
         'store': 'keells',
@@ -211,7 +224,9 @@ def main(barcodes_path, catalogue_path, out_path):
         'builtAt': __import__('time').strftime('%Y-%m-%dT%H:%M:%SZ',
                                                __import__('time').gmtime()),
         'count': len(prices),
+        'itemCount': len(items),
         'prices': prices,
+        'items': items,
     }
     with open(out_path, 'w', encoding='utf-8') as f:
         json.dump(doc, f, ensure_ascii=False, separators=(',', ':'))

@@ -394,6 +394,83 @@
     }
 
     /*
+     * A shelf-edge ticket, not a product.
+     *
+     * Keells prints one under every facing, carrying the item code the till
+     * uses. Scanning it is the shopper's way of telling the app exactly which
+     * Keells product they are holding - which no barcode can do, because
+     * nothing published maps an EAN-13 to a Keells item code.
+     *
+     * So a ticket does two jobs: it prices the packet just scanned, and it
+     * records that packet's barcode against the item code for good. One ticket
+     * scan, once per product, and the aisle knows that product's price for
+     * ever afterwards.
+     */
+    if (parsed.type === 'shelf') {
+      const priced = resolve.byItemCode(parsed.itemCode);
+      // The line the ticket belongs to: the most recent one still without a
+      // price. Anything already priced is left alone.
+      const pending = cart.items().find(i => i.unpriced);
+
+      if (!priced) {
+        beep(false);
+        setStatus(el.scanStatus, 'Shelf ticket for item ' + parsed.itemCode +
+          ' - that code is not in the price list yet.', 'warn');
+        scanlog.record({
+          source: source, engine: info.engine, raw: raw, parsed: parsed,
+          outcome: 'prompted', message: 'Shelf ticket scanned; item code unknown to the price list.'
+        });
+        updateLogStatus();
+        return;
+      }
+
+      if (!pending) {
+        beep(true);
+        setStatus(el.scanStatus, priced.name + ' - ' + money(priced.price) +
+          '. Scan the packet first and the ticket will price it.', 'ok');
+        scanlog.record({
+          source: source, engine: info.engine, raw: raw, parsed: parsed, product: priced,
+          outcome: 'added', message: 'Shelf ticket read; nothing waiting to be priced.'
+        });
+        updateLogStatus();
+        return;
+      }
+
+      cart.update(pending.id, {
+        name: pending.nameSource ? pending.name : priced.name,
+        unitPrice: priced.price,
+        pricing: priced.uom === 'KG' ? 'weight' : 'unit'
+      });
+
+      // Remember it. The barcode on the packet now has a Keells price against
+      // it, so the next trip prices this product the instant it is scanned.
+      if (pending.barcode) {
+        catalog.upsert({
+          code: pending.barcode,
+          name: pending.nameSource ? pending.name : priced.name,
+          unitPrice: priced.price,
+          pricing: priced.uom === 'KG' ? 'weight' : 'unit',
+          unit: priced.uom === 'KG' ? 'kg' : 'pc',
+          category: pending.category,
+          store: chain() || 'keells'
+        });
+      }
+
+      beep(true);
+      setStatus(el.scanStatus, priced.name + ' - ' + money(priced.price) +
+        ' (learned from the shelf ticket).', 'ok');
+      scanlog.record({
+        source: source, engine: info.engine, raw: raw, parsed: parsed, product: priced,
+        outcome: 'confirmed',
+        message: 'Shelf ticket priced ' + (pending.barcode || pending.code) +
+          ' at item ' + parsed.itemCode + '; saved to the catalog.'
+      });
+      updateLogStatus();
+      render();
+      return;
+    }
+
+    /*
      * A price recorded at another chain is a starting point, not a price. The
      * item codes collide across chains and the prices differ, so it is offered
      * in the dialog, prefilled, for the shopper to check against the shelf.

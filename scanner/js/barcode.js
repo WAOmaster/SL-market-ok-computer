@@ -320,6 +320,49 @@
    * Single entry point used by the app: classify anything the camera, the image
    * decoder or the manual entry box produces.
    */
+  /**
+   * A Keells shelf-edge price tag: `<item code><DDMMYY>`, the date being when
+   * the tag was printed.
+   *
+   * Confirmed against tags photographed in store on 30-Aug-2026:
+   *   115907|120826  VELVET BODY LOTION GLOW PERFECT 200ML   Rs 790.00
+   *   128797|100826  VELVET BL ORANGE & SHEA BUTTER 200ML    Rs 632.00
+   *   128519|......  SUNLIGHT MATIC LIQUID POUCH 1L          Rs 600.00
+   * and the item code is printed in plain text on the tag beside it.
+   *
+   * The date is the whole discriminator. Item codes look exactly like the ones
+   * inside a scale label, and tags are the same length, so without the date a
+   * tag reads as a weighed product - which is how one became 12.082 kg of body
+   * lotion. Across every real scale label checked, the trailing six digits
+   * never form a valid recent date, because a weight in grams followed by a
+   * check digit lands on an impossible day or month almost every time.
+   */
+  function decodeShelfTag(code) {
+    if (!/^\d{9,13}$/.test(code)) return null;
+
+    const suffix = code.slice(-6);
+    const itemCode = code.slice(0, -6).replace(/^0+/, '');
+    // Item codes run four to six digits; shorter than three is noise, and
+    // longer means this is a product barcode that happens to end in digits.
+    if (itemCode.length < 3 || itemCode.length > 7) return null;
+
+    const dd = Number(suffix.slice(0, 2));
+    const mm = Number(suffix.slice(2, 4));
+    const yy = Number(suffix.slice(4, 6));
+    if (!(dd >= 1 && dd <= 31) || !(mm >= 1 && mm <= 12)) return null;
+
+    // Tags are reprinted constantly, so a plausible one is recent. A window
+    // around today rejects the coincidences without needing the exact date.
+    const nowYY = new Date().getFullYear() % 100;
+    if (yy < nowYY - 2 || yy > nowYY + 1) return null;
+
+    return {
+      itemCode: itemCode,
+      printedOn: '20' + String(yy).padStart(2, '0') + '-' +
+        String(mm).padStart(2, '0') + '-' + String(dd).padStart(2, '0')
+    };
+  }
+
   function parse(raw, options) {
     const opts = options || {};
     const code = normalize(raw);
@@ -342,6 +385,32 @@
     }
 
     result.valid = isValidEan(code);
+
+    /*
+     * A shelf-edge price tag, which is not a product at all.
+     *
+     * Keells prints one under every facing: the item code in plain text, the
+     * name, the price, and a barcode of `itemCode + DDMMYY` where the date is
+     * when the tag was printed. Scanning one is how a shopper can hand the app
+     * a Keells item code without typing anything - and the item code is the
+     * exact key their prices are held under, so it beats matching by name.
+     *
+     * This has to be tested BEFORE the scale-label layouts. A tag like
+     * 115907120826 is twelve digits and happened to carry a valid UPC-A check
+     * digit, so the weight rule claimed it and produced 12.082 kg of body
+     * lotion. The date suffix is what separates them: across real scale labels
+     * the trailing six digits never parse as a plausible recent date, because a
+     * weight in grams plus a check digit almost never lands on a valid day and
+     * month.
+     */
+    const tag = decodeShelfTag(code);
+    if (tag) {
+      result.type = 'shelf';
+      result.itemCode = tag.itemCode;
+      result.printedOn = tag.printedOn;
+      result.valid = true;
+      return result;
+    }
 
     /*
      * Try the code exactly as the scanner reported it before padding a 12-digit

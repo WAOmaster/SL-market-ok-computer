@@ -38,9 +38,10 @@
   const PRICE_URL = 'data/prices.json';
 
   let table = null;      // code -> record, once loaded
-  let prices = null;     // code -> { itemCode, price, ... }
+  let prices = null;     // barcode -> { itemCode, price, ... }
+  let items = null;      // Keells item code -> { name, price } (shelf tickets)
   let loading = null;    // in-flight promise, so concurrent scans load it once
-  let meta = { source: '', builtAt: '', count: 0, priced: 0, store: '' };
+  let meta = { source: '', builtAt: '', count: 0, priced: 0, items: 0, store: '' };
 
   function index(products) {
     const map = {};
@@ -75,7 +76,33 @@
     });
     meta.priced = Object.keys(prices).length;
     if (info && info.store) meta.store = info.store;
+    if (info && info.items) setItems(info.items);
     return meta.priced;
+  }
+
+  /**
+   * The catalogue keyed by Keells item code.
+   *
+   * This is the better key. A shelf-edge ticket scans as its own item code, so
+   * pointing the camera at the ticket prices the product exactly - no name
+   * matching, no guessing between two similar packets - and it covers every row
+   * in the catalogue rather than only those a barcode happened to match.
+   */
+  function setItems(map) {
+    items = {};
+    Object.keys(map || {}).forEach(k => {
+      const code = String(k).replace(/^0+/, '') || String(k);
+      if (map[k] && Number(map[k].price) > 0) items[code] = map[k];
+    });
+    meta.items = Object.keys(items).length;
+    return meta.items;
+  }
+
+  /** Price a Keells item code, as read off a shelf ticket. */
+  function byItemCode(code) {
+    if (!items) return null;
+    const key = String(code == null ? '' : code).replace(/^0+/, '');
+    return key && items[key] ? Object.assign({ itemCode: key }, items[key]) : null;
   }
 
   /**
@@ -104,7 +131,7 @@
           table = {};
         }
         if (priceDoc && priceDoc.prices) {
-          setPrices(priceDoc.prices, { store: priceDoc.store || '' });
+          setPrices(priceDoc.prices, { store: priceDoc.store || '', items: priceDoc.items });
         } else {
           prices = {};
         }
@@ -165,5 +192,5 @@
     return Object.assign({}, meta, { loaded: !!table });
   }
 
-  return { load, lookup, lookupSync, setTable, setPrices, info, DATA_URL, PRICE_URL };
+  return { load, lookup, lookupSync, setTable, setPrices, setItems, byItemCode, info, DATA_URL, PRICE_URL };
 });

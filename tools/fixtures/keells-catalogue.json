@@ -1,42 +1,245 @@
 {
   "format": "slscan.keells-catalogue.v1",
-  "source": "Keells bill 29-Aug-2026, Panadura 3 (store SIP4) - verified ground truth",
+  "source": "Keells bill 29-Aug-2026, Panadura 3 (store SIP4) - verified ground truth + shelf-edge tickets photographed in store 30-Aug-2026",
   "note": "A real slice of the Keells catalogue: item code, exact till description, exact till price. Stands in for the full headed scrape (One Market's keellsScraper) so the barcode->itemCode->price join can be proven before that scrape is run.",
   "outlet": "SIP4",
   "capturedAt": "2026-08-29T18:28:01+05:30",
   "items": [
-    { "itemCode": "14163",  "name": "HARPIC POWER PLUS 10X 500ML",           "price": 480.00, "uom": "NO" },
-    { "itemCode": "6591",   "name": "LIFEBUOY H/WASH TOTAL POUCH 180ML",     "price": 350.00, "uom": "NO" },
-    { "itemCode": "128519", "name": "SUNLIGHT MATIC LIQUID POUCH 1L",        "price": 600.00, "uom": "NO" },
-    { "itemCode": "23036",  "name": "HARISCHANDRA PLAIN NOODLES 400G",       "price": 280.00, "uom": "NO" },
-    { "itemCode": "115473", "name": "WIJAYA CHILLI PIECES 100G",             "price": 220.00, "uom": "NO" },
-    { "itemCode": "126963", "name": "AHMAD TEA PREMIUM BOPF POUCH 200G",     "price": 680.00, "uom": "NO" },
-    { "itemCode": "9726",   "name": "MALIBAN LEMON PUFF 200G",               "price": 270.00, "uom": "NO" },
-    { "itemCode": "128030", "name": "KEELLS PEPPER POWDER 50G",              "price": 210.00, "uom": "NO" },
-    { "itemCode": "92951",  "name": "AMBEWELA FULL CREAM UHT MILK TETRA 200ML", "price": 140.00, "uom": "NO" },
-
-    { "itemCode": "923010", "name": "BANANA - SEENI",                        "price": 240.00, "uom": "KG" },
-    { "itemCode": "923063", "name": "MELON - RED FANTASY",                   "price": 80.00,  "uom": "KG" },
-    { "itemCode": "914005", "name": "PRE-PACKED BIG ONIONS",                 "price": 380.00, "uom": "KG" },
-    { "itemCode": "914000", "name": "ASH PLANTAINS",                         "price": 210.00, "uom": "KG" },
-    { "itemCode": "914009", "name": "CUCUMBER",                              "price": 130.00, "uom": "KG" },
-    { "itemCode": "914014", "name": "GARLIC",                                "price": 890.00, "uom": "KG" },
-    { "itemCode": "914034", "name": "NIVITHI",                               "price": 210.00, "uom": "KG" },
-    { "itemCode": "914036", "name": "ONION LEAVES",                          "price": 360.00, "uom": "KG" },
-    { "itemCode": "914039", "name": "PUMPKIN",                               "price": 120.00, "uom": "KG" },
-    { "itemCode": "914044", "name": "RIBBED GOURD",                          "price": 360.00, "uom": "KG" },
-    { "itemCode": "914047", "name": "SNAKE GOURD",                           "price": 240.00, "uom": "KG" },
-    { "itemCode": "914049", "name": "SWEET POTATO",                          "price": 210.00, "uom": "KG" },
-    { "itemCode": "913055", "name": "MINCHI LEAVES",                         "price": 1690.00,"uom": "KG" },
-    { "itemCode": "913066", "name": "SALAD CUCUMBER",                        "price": 360.00, "uom": "KG" },
-    { "itemCode": "915005", "name": "CABBAGE",                               "price": 340.00, "uom": "KG" },
-    { "itemCode": "915006", "name": "CAPSICUM",                              "price": 650.00, "uom": "KG" },
-    { "itemCode": "915007", "name": "CARROT",                                "price": 280.00, "uom": "KG" },
-    { "itemCode": "915008", "name": "GREEN BEANS",                           "price": 550.00, "uom": "KG" },
-    { "itemCode": "915013", "name": "POTATOES",                              "price": 390.00, "uom": "KG" },
-    { "itemCode": "915016", "name": "TOMATOES",                              "price": 440.00, "uom": "KG" },
-    { "itemCode": "4681",   "name": "RICE SAMBA BULK KG - LOCAL",            "price": 240.00, "uom": "KG" },
-    { "itemCode": "15427",  "name": "RED KEKULU SAMBA BULK KG - LOCAL",      "price": 240.00, "uom": "KG" },
-    { "itemCode": "21445",  "name": "WHITE SUGAR BULK KG",                   "price": 212.00, "uom": "KG" }
+    {
+      "itemCode": "14163",
+      "name": "HARPIC POWER PLUS 10X 500ML",
+      "price": 480.0,
+      "uom": "NO"
+    },
+    {
+      "itemCode": "6591",
+      "name": "LIFEBUOY H/WASH TOTAL POUCH 180ML",
+      "price": 350.0,
+      "uom": "NO"
+    },
+    {
+      "itemCode": "128519",
+      "name": "SUNLIGHT MATIC LIQUID POUCH 1L",
+      "price": 600.0,
+      "uom": "NO"
+    },
+    {
+      "itemCode": "23036",
+      "name": "HARISCHANDRA PLAIN NOODLES 400G",
+      "price": 280.0,
+      "uom": "NO"
+    },
+    {
+      "itemCode": "115473",
+      "name": "WIJAYA CHILLI PIECES 100G",
+      "price": 220.0,
+      "uom": "NO"
+    },
+    {
+      "itemCode": "126963",
+      "name": "AHMAD TEA PREMIUM BOPF POUCH 200G",
+      "price": 680.0,
+      "uom": "NO"
+    },
+    {
+      "itemCode": "9726",
+      "name": "MALIBAN LEMON PUFF 200G",
+      "price": 270.0,
+      "uom": "NO"
+    },
+    {
+      "itemCode": "128030",
+      "name": "KEELLS PEPPER POWDER 50G",
+      "price": 210.0,
+      "uom": "NO"
+    },
+    {
+      "itemCode": "92951",
+      "name": "AMBEWELA FULL CREAM UHT MILK TETRA 200ML",
+      "price": 140.0,
+      "uom": "NO"
+    },
+    {
+      "itemCode": "923010",
+      "name": "BANANA - SEENI",
+      "price": 240.0,
+      "uom": "KG"
+    },
+    {
+      "itemCode": "923063",
+      "name": "MELON - RED FANTASY",
+      "price": 80.0,
+      "uom": "KG"
+    },
+    {
+      "itemCode": "914005",
+      "name": "PRE-PACKED BIG ONIONS",
+      "price": 380.0,
+      "uom": "KG"
+    },
+    {
+      "itemCode": "914000",
+      "name": "ASH PLANTAINS",
+      "price": 210.0,
+      "uom": "KG"
+    },
+    {
+      "itemCode": "914009",
+      "name": "CUCUMBER",
+      "price": 130.0,
+      "uom": "KG"
+    },
+    {
+      "itemCode": "914014",
+      "name": "GARLIC",
+      "price": 890.0,
+      "uom": "KG"
+    },
+    {
+      "itemCode": "914034",
+      "name": "NIVITHI",
+      "price": 210.0,
+      "uom": "KG"
+    },
+    {
+      "itemCode": "914036",
+      "name": "ONION LEAVES",
+      "price": 360.0,
+      "uom": "KG"
+    },
+    {
+      "itemCode": "914039",
+      "name": "PUMPKIN",
+      "price": 120.0,
+      "uom": "KG"
+    },
+    {
+      "itemCode": "914044",
+      "name": "RIBBED GOURD",
+      "price": 360.0,
+      "uom": "KG"
+    },
+    {
+      "itemCode": "914047",
+      "name": "SNAKE GOURD",
+      "price": 240.0,
+      "uom": "KG"
+    },
+    {
+      "itemCode": "914049",
+      "name": "SWEET POTATO",
+      "price": 210.0,
+      "uom": "KG"
+    },
+    {
+      "itemCode": "913055",
+      "name": "MINCHI LEAVES",
+      "price": 1690.0,
+      "uom": "KG"
+    },
+    {
+      "itemCode": "913066",
+      "name": "SALAD CUCUMBER",
+      "price": 360.0,
+      "uom": "KG"
+    },
+    {
+      "itemCode": "915005",
+      "name": "CABBAGE",
+      "price": 340.0,
+      "uom": "KG"
+    },
+    {
+      "itemCode": "915006",
+      "name": "CAPSICUM",
+      "price": 650.0,
+      "uom": "KG"
+    },
+    {
+      "itemCode": "915007",
+      "name": "CARROT",
+      "price": 280.0,
+      "uom": "KG"
+    },
+    {
+      "itemCode": "915008",
+      "name": "GREEN BEANS",
+      "price": 550.0,
+      "uom": "KG"
+    },
+    {
+      "itemCode": "915013",
+      "name": "POTATOES",
+      "price": 390.0,
+      "uom": "KG"
+    },
+    {
+      "itemCode": "915016",
+      "name": "TOMATOES",
+      "price": 440.0,
+      "uom": "KG"
+    },
+    {
+      "itemCode": "4681",
+      "name": "RICE SAMBA BULK KG - LOCAL",
+      "price": 240.0,
+      "uom": "KG"
+    },
+    {
+      "itemCode": "15427",
+      "name": "RED KEKULU SAMBA BULK KG - LOCAL",
+      "price": 240.0,
+      "uom": "KG"
+    },
+    {
+      "itemCode": "21445",
+      "name": "WHITE SUGAR BULK KG",
+      "price": 212.0,
+      "uom": "KG"
+    },
+    {
+      "itemCode": "115907",
+      "name": "VELVET BODY LOTION GLOW PERFECT 200ML",
+      "price": 790.0,
+      "uom": "NO"
+    },
+    {
+      "itemCode": "128798",
+      "name": "VELVET BL ORANGE & SHEA BUTTER 100ML",
+      "price": 420.0,
+      "uom": "NO"
+    },
+    {
+      "itemCode": "128797",
+      "name": "VELVET BL ORANGE & SHEA BUTTER 200ML",
+      "price": 632.0,
+      "uom": "NO",
+      "wasPrice": 790.0,
+      "promo": "K20%"
+    },
+    {
+      "itemCode": "115910",
+      "name": "VELVET BODY LOTION INT/NOURISH 100ML",
+      "price": 400.0,
+      "uom": "NO"
+    },
+    {
+      "itemCode": "115911",
+      "name": "VELVET BODY LOTION INT/NOURISH 200ML",
+      "price": 790.0,
+      "uom": "NO"
+    },
+    {
+      "itemCode": "114886",
+      "name": "VASELINE LOTION ADVANCED REPAIR 100ML",
+      "price": 1020.0,
+      "uom": "NO"
+    },
+    {
+      "itemCode": "124575",
+      "name": "VASELINE LOTION COCOA GLOW 200ML",
+      "price": 1315.0,
+      "uom": "NO"
+    }
   ]
 }

@@ -148,3 +148,58 @@ test('empty and junk input is handled without throwing', () => {
   assert.strictEqual(barcode.parse(null).code, '');
   assert.strictEqual(barcode.parse('abc').type, 'unknown');
 });
+
+/*
+ * Shelf-edge price tickets.
+ *
+ * Keells prints one under every facing: item code and price in plain text, and
+ * a barcode of `itemCode + DDMMYY`. Scanning one is how the app learns which
+ * Keells product a packet is, since nothing published maps an EAN-13 to a
+ * Keells item code.
+ *
+ * Codes below were photographed in store on 30-Aug-2026.
+ */
+test('a shelf ticket decodes to its item code and print date', () => {
+  const p = barcode.parse('115907120826');
+  assert.strictEqual(p.type, 'shelf');
+  assert.strictEqual(p.itemCode, '115907');
+  assert.strictEqual(p.printedOn, '2026-08-12');
+});
+
+test('shelf tickets are not all the same length', () => {
+  // Item codes run four to six digits; only the date suffix is fixed.
+  assert.strictEqual(barcode.parse('8117030826').itemCode, '8117');
+  assert.strictEqual(barcode.parse('128797100826').itemCode, '128797');
+});
+
+/*
+ * The bug this guards. 115907120826 is twelve digits AND carries a valid UPC-A
+ * check digit, so the scale-label rule claimed it and produced 12.082 kg of
+ * body lotion. Only the date suffix separates the two formats.
+ */
+test('a shelf ticket is never read as a weighed product', () => {
+  const p = barcode.parse('115907120826');
+  assert.notStrictEqual(p.type, 'embedded');
+  assert.ok(!p.best || p.best.kind !== 'weight',
+    'a price ticket must not produce a weight');
+});
+
+test('a real scale label is still read as a weight, not a ticket', () => {
+  // 923010 Banana Seeni, 1.218 kg - from the verified Keells bill.
+  const p = barcode.parse('923010012187');
+  assert.strictEqual(p.type, 'embedded');
+  assert.strictEqual(p.itemCode, '923010');
+  assert.ok(Math.abs(p.best.weightKg - 1.218) < 0.001);
+});
+
+test('ordinary product barcodes are left alone', () => {
+  ['4792081013760', '4791034017015', '4792173000012'].forEach(c => {
+    assert.strictEqual(barcode.parse(c).type, 'retail', c + ' is a product');
+  });
+});
+
+test('a date that could not be real is not a ticket', () => {
+  // Month 21 and day 00 do not exist, so these are not print dates.
+  assert.notStrictEqual(barcode.parse('115907122126').type, 'shelf');
+  assert.notStrictEqual(barcode.parse('115907000826').type, 'shelf');
+});
