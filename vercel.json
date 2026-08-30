@@ -2,12 +2,19 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "headers": [
     {
-      "//": "The scanner's code and data ship as plain files with stable names, so a browser will happily keep serving last week's copy - which on a phone means shopping with a stale price table and no way to tell. no-cache still allows a 304, so the cost is a round trip, not a re-download.",
-      "source": "/scanner/(js|data)/(.*)",
+      "source": "/scanner/js/(.*)",
       "headers": [{ "key": "Cache-Control", "value": "no-cache, must-revalidate" }]
     },
     {
-      "source": "/scanner/(index.html|scanner.css)",
+      "source": "/scanner/data/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "no-cache, must-revalidate" }]
+    },
+    {
+      "source": "/scanner/index.html",
+      "headers": [{ "key": "Cache-Control", "value": "no-cache, must-revalidate" }]
+    },
+    {
+      "source": "/scanner/scanner.css",
       "headers": [{ "key": "Cache-Control", "value": "no-cache, must-revalidate" }]
     }
   ]
