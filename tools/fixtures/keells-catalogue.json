@@ -252,6 +252,32 @@
       "name": "KEELLS DISH WASH LIQUID 500ML",
       "price": 336.0,
       "uom": "NO"
+    },
+    {
+      "itemCode": "122147",
+      "name": "CATCH CURRY POWDER 250G",
+      "price": 500.0,
+      "uom": "NO"
+    },
+    {
+      "itemCode": "122149",
+      "name": "CATCH JAFFNA CURRY POWDER 100G",
+      "price": 225.0,
+      "uom": "NO",
+      "wasPrice": 250.0,
+      "promo": "K10%"
+    },
+    {
+      "itemCode": "42565",
+      "name": "KEELLS TURMERIC POWDER 100G",
+      "price": 450.0,
+      "uom": "NO"
+    },
+    {
+      "itemCode": "42564",
+      "name": "KEELLS PEPPER POWDER 100G",
+      "price": 395.0,
+      "uom": "NO"
     }
   ]
 }

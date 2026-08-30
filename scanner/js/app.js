@@ -56,6 +56,16 @@
   let recent = [];
   let torchAvailable = false;
 
+  /*
+   * Shelf tickets. A ticket prices the packet scanned just before it, so both
+   * of these are about not letting the camera's repeat reads do damage:
+   * ignore the same ticket read again within a moment, and only attach a
+   * ticket to a line the shopper scanned seconds ago.
+   */
+  const TICKET_REPEAT_MS = 4000;
+  const TICKET_LINK_MS = 90000;
+  let lastTicket = { code: null, at: 0 };
+
   /* ---------------- helpers ---------------- */
 
   function currency() { return cart.getState().settings.currency || 'Rs.'; }
@@ -406,11 +416,56 @@
      * scan, once per product, and the aisle knows that product's price for
      * ever afterwards.
      */
+    /*
+     * Half a ticket. The camera caught the item code and then lost the rest, so
+     * there is no price to read and nothing to add - the packet it belongs to
+     * is already in the trolley waiting. Ask for another look rather than
+     * inventing a line out of the fragment.
+     */
+    if (parsed.type === 'shelf-partial') {
+      beep(false);
+      setStatus(el.scanStatus, 'Only half that shelf ticket came through - hold steady and scan it again.', 'warn');
+      scanlog.record({
+        source: source, engine: info.engine, raw: raw, parsed: parsed,
+        outcome: 'rejected', message: 'Partial shelf-ticket read; not added.'
+      });
+      updateLogStatus();
+      return;
+    }
+
     if (parsed.type === 'shelf') {
+      /*
+       * A camera pointed at a ticket reads it many times a second. Without a
+       * guard one ticket fired six times in nine seconds and priced four
+       * different products - a real trolley came out at Rs 6,830 of things the
+       * shopper had not chosen.
+       */
+      // Keyed on the item code, not the raw text: the camera renders the
+      // ticket's separator differently on each pass, so the same ticket arrives
+      // as several different strings and a raw-text guard never catches it.
+      if (lastTicket.code === parsed.itemCode && Date.now() - lastTicket.at < TICKET_REPEAT_MS) {
+        return;
+      }
+      lastTicket = { code: parsed.itemCode, at: Date.now() };
+
       const priced = resolve.byItemCode(parsed.itemCode);
-      // The line the ticket belongs to: the most recent one still without a
-      // price. Anything already priced is left alone.
-      const pending = cart.items().find(i => i.unpriced);
+
+      /*
+       * Which line does a ticket belong to? Only the one the shopper scanned
+       * immediately before it - they picked up a packet, then pointed at the
+       * ticket beneath it.
+       *
+       * It used to take *any* unpriced line, which is how the Sunlight ticket
+       * priced a packet scanned two minutes earlier, and then priced two other
+       * shelf tickets that had themselves been mistaken for products. So:
+       * the newest line only, still unpriced, scanned moments ago, and never a
+       * line that is itself a ticket.
+       */
+      const newest = cart.items()[0];
+      const fresh = newest && newest.addedAt &&
+        (Date.now() - new Date(newest.addedAt).getTime()) < TICKET_LINK_MS;
+      const isTicket = newest && barcode.parse(newest.barcode || newest.code).type === 'shelf';
+      const pending = (newest && newest.unpriced && fresh && !isTicket) ? newest : null;
 
       if (!priced) {
         beep(false);

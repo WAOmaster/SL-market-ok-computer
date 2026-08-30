@@ -338,23 +338,39 @@
    * check digit lands on an impossible day or month almost every time.
    */
   function decodeShelfTag(code) {
-    if (!/^\d{9,13}$/.test(code)) return null;
+    /*
+     * Ten to twelve digits, and no more.
+     *
+     * Every Keells item code seen on a ticket is four to six digits (8117 at
+     * the short end, 939619 at the long), so a ticket is 10-12 digits once the
+     * six-digit date is added. That bound is what keeps a 13-digit product
+     * barcode out: 4792212011221 is a real packet whose last six digits happen
+     * to read as 01/12/21, and with a looser length it was claimed as a ticket.
+     */
+    if (!/^\d{10,12}$/.test(code)) return null;
 
     const suffix = code.slice(-6);
     const itemCode = code.slice(0, -6).replace(/^0+/, '');
-    // Item codes run four to six digits; shorter than three is noise, and
-    // longer means this is a product barcode that happens to end in digits.
-    if (itemCode.length < 3 || itemCode.length > 7) return null;
+    if (itemCode.length < 4 || itemCode.length > 6) return null;
 
     const dd = Number(suffix.slice(0, 2));
     const mm = Number(suffix.slice(2, 4));
     const yy = Number(suffix.slice(4, 6));
     if (!(dd >= 1 && dd <= 31) || !(mm >= 1 && mm <= 12)) return null;
 
-    // Tags are reprinted constantly, so a plausible one is recent. A window
-    // around today rejects the coincidences without needing the exact date.
+    /*
+     * A ticket is only reprinted when the price changes, so one shelf can carry
+     * tickets years apart - a single trip turned up 2023, 2024 and 2026 side by
+     * side. An earlier +/-2 year window rejected the 2023 ticket, which then
+     * fell through to the product path and was added to the trolley as if it
+     * were something to buy.
+     *
+     * The year is a weak signal anyway; the day and month do the real work of
+     * separating tickets from weights. Keep the window wide enough to cover a
+     * shelf nobody has touched in years, and no wider.
+     */
     const nowYY = new Date().getFullYear() % 100;
-    if (yy < nowYY - 2 || yy > nowYY + 1) return null;
+    if (yy < nowYY - 8 || yy > nowYY + 1) return null;
 
     return {
       itemCode: itemCode,
@@ -403,12 +419,35 @@
      * weight in grams plus a check digit almost never lands on a valid day and
      * month.
      */
-    const tag = decodeShelfTag(code);
+    /*
+     * Read the ticket from the RAW string first, because the symbology carries
+     * a separator the digits-only form throws away: tickets come back as
+     * `128519-220726`, and the camera renders that separator differently on
+     * every pass - `128519J160726` was one real read. Matching on the raw shape
+     * recognises all of them as the same ticket instead of as several codes.
+     */
+    const rawTag = decodeShelfTag(result.raw.replace(/^(\d{4,6})[^\d](\d{6})$/, '$1$2'));
+    const tag = rawTag || decodeShelfTag(code);
     if (tag) {
       result.type = 'shelf';
       result.itemCode = tag.itemCode;
       result.printedOn = tag.printedOn;
       result.valid = true;
+      return result;
+    }
+
+    /*
+     * A ticket the camera only half-read. `42594-\r8.(` is a genuine capture:
+     * an item code, the separator, then noise. Stripped to digits it became
+     * "425948", which looked like an ordinary code and was added to the trolley
+     * as a product - a phantom line the shopper never picked up.
+     *
+     * A partial read is not a product. Say so and let them scan again.
+     */
+    if (/^\d{4,6}[^\d]/.test(result.raw) && result.raw.length < 14) {
+      result.type = 'shelf-partial';
+      result.valid = false;
+      result.itemCode = /^(\d{4,6})/.exec(result.raw)[1];
       return result;
     }
 

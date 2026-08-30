@@ -203,3 +203,39 @@ test('a date that could not be real is not a ticket', () => {
   assert.notStrictEqual(barcode.parse('115907122126').type, 'shelf');
   assert.notStrictEqual(barcode.parse('115907000826').type, 'shelf');
 });
+
+/*
+ * What the camera actually returns for a ticket, captured in store.
+ *
+ * The symbology carries a separator - `128519-220726` - and the reader renders
+ * it differently on every pass. One real trip produced `128519-220726` and
+ * `128519J160726` seconds apart, and a half-read `42594-\r8.(`. Stripped to
+ * digits that fragment became "425948", which looked like an ordinary barcode
+ * and was added to the trolley as a Rs 600 product nobody had picked up.
+ */
+test('the same ticket is recognised however the separator is rendered', () => {
+  ['128519-220726', '128519J160726', '128519220726'].forEach(raw => {
+    const p = barcode.parse(raw);
+    assert.strictEqual(p.type, 'shelf', raw);
+    assert.strictEqual(p.itemCode, '128519', raw);
+  });
+});
+
+test('a half-read ticket is refused, not turned into a product', () => {
+  const p = barcode.parse('42594-\r8.(');
+  assert.strictEqual(p.type, 'shelf-partial');
+  assert.strictEqual(p.valid, false);
+  assert.strictEqual(p.itemCode, '42594');
+});
+
+test('tickets stay on shelves for years, so old dates still count', () => {
+  // Scanned side by side on one trip: 2023, 2024 and 2026 tickets.
+  assert.strictEqual(barcode.parse('122147-110523').itemCode, '122147');
+  assert.strictEqual(barcode.parse('42564-240624').itemCode, '42564');
+  assert.strictEqual(barcode.parse('122149-190826').itemCode, '122149');
+});
+
+test('a 13-digit product barcode is never a ticket, whatever it ends in', () => {
+  // 4792212011221 ends in 011221, which reads as 01/12/21. It is a packet.
+  assert.strictEqual(barcode.parse('4792212011221').type, 'retail');
+});
