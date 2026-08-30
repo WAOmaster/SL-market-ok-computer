@@ -195,10 +195,36 @@ def flag_collisions(out, stats):
     return out, stats
 
 
+def load_catalogues(paths):
+    """
+    Merge catalogues, earliest wins.
+
+    Order is the point. The hand-built fixture holds prices read off a till
+    receipt and off shelf tickets in the store; the scrape holds what the
+    website lists. They disagree - the site showed Sunlight Matic at Rs 625
+    while both the bill and the shelf ticket said Rs 600 - and the shelf is
+    what the shopper is standing in front of. So a verified row is never
+    overwritten by a scraped one; the scrape only fills what nobody has seen.
+    """
+    merged, sources, captured = {}, [], ''
+    for path in paths:
+        doc = json.load(open(path, encoding='utf-8'))
+        sources.append(doc.get('source', path))
+        captured = captured or doc.get('capturedAt', '')
+        for item in doc['items']:
+            code = str(item['itemCode']).lstrip('0') or str(item['itemCode'])
+            if code not in merged:
+                merged[code] = item
+    return list(merged.values()), ' + '.join(sources), captured
+
+
 def main(barcodes_path, catalogue_path, out_path):
     barcodes = json.load(open(barcodes_path, encoding='utf-8'))['products']
-    cat_doc = json.load(open(catalogue_path, encoding='utf-8'))
-    catalogue = cat_doc['items']
+    paths = [p.strip() for p in str(catalogue_path).split(',') if p.strip()]
+    catalogue, merged_source, merged_captured = load_catalogues(paths)
+    cat_doc = json.load(open(paths[0], encoding='utf-8'))
+    cat_doc['source'] = merged_source
+    cat_doc['capturedAt'] = cat_doc.get('capturedAt') or merged_captured
 
     prices, stats = match(barcodes, catalogue)
 

@@ -80,6 +80,27 @@ check("both priced, exactly one marked ambiguous", both and flagged == 1,
       f"(matched {list(dup)}, flagged {flagged})")
 
 print()
+print("merging catalogues - what the shelf says beats what the website says:")
+import json, tempfile, os
+from match_keells import load_catalogues
+verified = {"items": [{"itemCode": "128519", "name": "SUNLIGHT MATIC LIQUID POUCH 1L", "price": 600.0, "uom": "NO"}],
+            "source": "bill + shelf ticket"}
+scraped = {"items": [{"itemCode": "0128519", "name": "Sunlight Matic Liquid 1L", "price": 625.0, "uom": "NO"},
+                     {"itemCode": "777001", "name": "Website only", "price": 99.0, "uom": "NO"}],
+           "source": "website"}
+paths = []
+for doc in (verified, scraped):
+    fh = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8")
+    json.dump(doc, fh); fh.close(); paths.append(fh.name)
+merged, src, _ = load_catalogues(paths)
+by = {m["itemCode"].lstrip("0"): m for m in merged}
+check("the shelf-verified Rs 600 survives the scraped Rs 625", by["128519"]["price"] == 600.0,
+      f"(got {by['128519']['price']})")
+check("a leading-zero item code is not a second product", len(merged) == 2, f"(got {len(merged)})")
+check("the scrape still fills a row nobody has seen", "777001" in by)
+for f in paths: os.unlink(f)
+
+print()
 if failures:
     print(f"{len(failures)} FAILED: {failures}")
     sys.exit(1)
