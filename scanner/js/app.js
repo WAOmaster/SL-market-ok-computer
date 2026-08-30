@@ -9,7 +9,7 @@
 (function () {
   'use strict';
 
-  const { barcode, catalog, cart, label, scanner, api, scanlog, report, stores } = window.SLScan;
+  const { barcode, catalog, cart, label, scanner, api, scanlog, report, stores, resolve, trips } = window.SLScan;
 
   const $ = sel => document.querySelector(sel);
   const $$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
@@ -47,7 +47,10 @@
     billStatus: $('#billStatus'),
     logStatus: $('#logStatus'),
     learnedRules: $('#learnedRules'),
-    storeChain: $('#storeChain')
+    storeChain: $('#storeChain'),
+    historyMonths: $('#historyMonths'),
+    historyItems: $('#historyItems'),
+    historyTrips: $('#historyTrips')
   };
 
   let recent = [];
@@ -105,6 +108,7 @@
     $$('.tab').forEach(t => t.setAttribute('aria-selected', String(t.id === 'tab-' + name)));
     $$('.view').forEach(v => { v.hidden = v.id !== 'view-' + name; });
     if (name === 'catalog') renderCatalog();
+    if (name === 'history') renderHistory();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -209,6 +213,69 @@
     el.cartLines.innerHTML = items.map(lineHTML).join('');
   }
 
+  /**
+   * The month view. Every number here comes from trips already on this phone -
+   * there is nothing to fetch, and nothing leaves the device.
+   */
+  function renderHistory() {
+    const months = trips.monthly();
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    if (!months.length) {
+      el.historyMonths.innerHTML =
+        '<p class="hint">No finished trips yet. Scan a shop, then tap ' +
+        '&ldquo;Empty the trolley&rdquo; when you are done and it will be kept here.</p>';
+      el.historyItems.innerHTML = '';
+      el.historyTrips.innerHTML = '';
+      return;
+    }
+
+    el.historyMonths.innerHTML = months.map(m => {
+      // An estimate is a trip whose till total was never entered, so it is
+      // still the app's arithmetic rather than what the card was charged.
+      const caveat = m.estimated
+        ? ' <span class="hint">(' + m.estimated + ' estimated)</span>'
+        : '';
+      return '<div class="row"><span>' + escapeHtml(m.month) + ' &middot; ' +
+        m.trips + (m.trips === 1 ? ' trip' : ' trips') + caveat + '</span><span>' +
+        money(m.total) + '</span></div>';
+    }).join('');
+
+    el.historyItems.innerHTML = trips.topItems(8).map(i =>
+      '<div class="row"><span>' + escapeHtml(i.name) +
+      ' <span class="hint">&times;' + i.times + '</span></span><span>' +
+      money(i.spend) + '</span></div>').join('') ||
+      '<p class="hint">Nothing recorded yet.</p>';
+
+    el.historyTrips.innerHTML = trips.list().map(t => {
+      const d = new Date(t.savedAt);
+      const when = isNaN(d) ? t.savedAt
+        : dayNames[d.getDay()] + ' ' + d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear();
+      const paid = t.tillTotal != null && t.tillTotal > 0;
+      const bits = [t.itemCount + ' items'];
+      if (t.unpriced) bits.push(t.unpriced + ' unpriced');
+      if (!paid) bits.push('estimate');
+      return '<div class="line">' +
+        '<div class="name">' + escapeHtml(t.store || 'Trip') + '</div>' +
+        '<div class="total">' + money(paid ? t.tillTotal : t.total) + '</div>' +
+        '<div class="meta">' + escapeHtml(when) + ' &middot; ' + bits.join(' &middot; ') + '</div>' +
+        '<div class="controls">' +
+          '<button type="button" class="btn small danger" data-deltrip="' + escapeHtml(t.id) + '">Remove</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  if (el.historyTrips) {
+    el.historyTrips.addEventListener('click', ev => {
+      const btn = ev.target.closest('[data-deltrip]');
+      if (!btn) return;
+      if (!window.confirm('Remove this trip from your history? This cannot be undone.')) return;
+      trips.remove(btn.dataset.deltrip);
+      renderHistory();
+    });
+  }
+
   function renderTotals() {
     const t = cart.totals();
     const rows = [
@@ -223,6 +290,16 @@
     let html = rows.map(r =>
       '<div class="row"><span>' + r[0] + '</span><span>' + r[1] + '</span></div>').join('');
     html += '<div class="row grand"><span>Total</span><span>' + money(t.total) + '</span></div>';
+
+    /*
+     * Say plainly when the total is incomplete. A running total that silently
+     * omits three unpriced packets is worse than no total at all - the shopper
+     * plans around it and is caught out at the till.
+     */
+    if (t.unpriced) {
+      html += '<div class="row warn"><span>Not yet priced</span><span>' +
+        t.unpriced + (t.unpriced === 1 ? ' item' : ' items') + '</span></div>';
+    }
 
     if (t.budget > 0) {
       const pct = Math.min(100, (t.total / t.budget) * 100);
@@ -347,27 +424,52 @@
       return;
     }
 
+    /*
+     * An unknown code must NEVER stop the shopper.
+     *
+     * This used to open the item dialog and wait for a name and a price. In an
+     * aisle, one hand on a trolley, that fires on most of a first shop - and
+     * people quit. The line goes into the trolley unpriced instead, the offline
+     * table names it if it can, and the running total says how many lines are
+     * still waiting. The bill fills the prices in afterwards, or the shopper
+     * taps the line when it suits them.
+     */
     if (!product) {
-      beep(false);
-      setStatus(el.scanStatus, 'Code ' + parsed.code + ' is new - tell me what it is once and I will remember it.', 'warn');
-      scanlog.record({
-        source: source, engine: info.engine, raw: raw, parsed: parsed,
-        outcome: 'prompted', message: 'Code not in the catalog; asked the shopper.'
-      });
-      updateLogStatus();
-      openItemDialog({
-        code: parsed.itemCode,
+      const named = resolve.lookupSync(parsed);
+      const embeddedPrice = parsed.best && parsed.best.kind === 'price' ? parsed.best.totalPrice : null;
+      const weighed = parsed.best && parsed.best.kind === 'weight' ? parsed.best : null;
+
+      const outcome = cart.add({
+        code: parsed.itemCode || parsed.code,
         // The code exactly as scanned - the format is learned from this, and
         // padding it to 13 digits would move the field.
         barcode: parsed.code,
-        decoded: parsed.type === 'embedded',
-        pricing: parsed.best && parsed.best.kind === 'weight' ? 'weight' : 'unit',
-        weightKg: parsed.best && parsed.best.weightKg ? parsed.best.weightKg : 0,
-        unusualWeight: !!(parsed.best && parsed.best.unusualWeight),
-        priceOverride: parsed.best && parsed.best.kind === 'price' ? parsed.best.totalPrice : null,
+        name: named ? named.name : ('Unknown item ' + parsed.code),
+        category: named && named.category ? named.category : 'Other',
+        nameSource: named ? 'barcodes' : '',
+        pricing: weighed ? 'weight' : 'unit',
+        weightKg: weighed ? weighed.weightKg : 0,
+        // A scale label that carries its own total price is already priced.
+        priceOverride: embeddedPrice,
+        unpriced: embeddedPrice == null,
         source: source
       });
-      return;
+
+      beep(!!named);
+      setStatus(el.scanStatus, named
+        ? named.name + ' added - no price yet, the bill will fill it in.'
+        : 'Added as unpriced. Carry on; you can name it later.', 'warn');
+      scanlog.record({
+        source: source, engine: info.engine, raw: raw, parsed: parsed,
+        product: named || null,
+        outcome: 'added',
+        message: named
+          ? 'Named from the offline barcode table; added unpriced.'
+          : 'Unknown code; added unpriced rather than stopping the shopper.'
+      });
+      updateLogStatus();
+      render();
+      return outcome;
     }
 
     const line = {
@@ -793,6 +895,15 @@
   $('#btnClear').addEventListener('click', () => {
     if (!cart.items().length) return;
     if (!window.confirm('Empty the trolley and start a new trip? The scan log is cleared too.')) return;
+    // Keep the finished trip before throwing the trolley away. This is the
+    // whole difference between an adding machine and a spending record - the
+    // app built this report already, it was just never kept.
+    try {
+      const saved = trips.save(report.build());
+      setStatus(el.exportStatus, 'Trip saved to history (' + money(saved.total) + ').', 'ok');
+    } catch (err) {
+      console.warn('Trip could not be saved to history.', err);
+    }
     // A new trip starts a new log, so an export never mixes two trips together.
     cart.clear();
     scanlog.clear();
@@ -1164,6 +1275,19 @@
   }
 
   window.addEventListener('beforeunload', () => { scanner.stop(); });
+
+  /*
+   * Warm the offline barcode table now, not on the first scan. It is one file
+   * fetched once; doing it at the shelf would add a stall to exactly the moment
+   * that has to feel instant. A failure here is silent by design - the app
+   * still scans, unknown packets just stay unnamed.
+   */
+  resolve.load().then(() => {
+    const info = resolve.info();
+    if (info.count) {
+      console.info('Barcode table ready: ' + info.count + ' products from ' + info.source);
+    }
+  });
 
   // Keep the scan box focused on desktop so a USB/Bluetooth barcode gun,
   // which simply types digits and presses Enter, works with no extra setup.

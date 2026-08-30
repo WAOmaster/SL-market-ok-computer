@@ -40,7 +40,12 @@
 
   function storage() {
     try {
-      if (typeof localStorage !== 'undefined') return localStorage;
+      if (typeof localStorage === 'undefined' || !localStorage) return null;
+      // Node ships a localStorage that exists but throws unless it is given a
+      // backing file, and some embedded browsers ship a similar stub. Existing
+      // is not the same as working.
+      if (typeof localStorage.setItem !== 'function') return null;
+      return localStorage;
     } catch (err) { /* ignore */ }
     return null;
   }
@@ -89,6 +94,12 @@
       weightKg: pricing === 'weight' ? Number(raw.weightKg) || 0 : 0,
       source: raw.source || 'manual',
       note: raw.note || '',
+      // A line that went into the trolley with no price yet. The shopper is
+      // never stopped mid-aisle to type one; the shelf or the bill fills it in.
+      unpriced: !!raw.unpriced,
+      // Where the name came from: 'catalog' (verified against a bill),
+      // 'barcodes' (the offline table), or '' when the shopper typed it.
+      nameSource: raw.nameSource || '',
       priceOverride: raw.priceOverride == null ? null : Number(raw.priceOverride),
       addedAt: raw.addedAt || new Date().toISOString()
     };
@@ -152,6 +163,9 @@
     }
     item.unitPrice = Math.max(0, Number(item.unitPrice) || 0);
     if (changes.priceOverride === '' || changes.priceOverride === null) item.priceOverride = null;
+    // Any real price clears the "not yet priced" mark - that is the whole point
+    // of the mark, so it must not survive the price arriving.
+    if (item.unitPrice > 0 || item.priceOverride != null) item.unpriced = false;
     item.lineTotal = lineTotal(item);
     save();
     return item;
@@ -211,6 +225,10 @@
 
     return {
       lines: state.items.length,
+      // How many lines are still waiting for a price. The running total is
+      // honest only when shown alongside this - "Rs 4,280 - 3 items not yet
+      // priced" is useful; "Rs 4,280" on its own is a lie.
+      unpriced: state.items.filter(i => i.unpriced).length,
       units: units,
       weightKg: barcode.round3(weightKg),
       // "Items" as a shopper counts them: each pack of loose produce counts once.
