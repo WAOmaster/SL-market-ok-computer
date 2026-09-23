@@ -98,6 +98,44 @@
     return meta.items;
   }
 
+  /**
+   * Find catalogue items by name.
+   *
+   * The join from barcode to item code covers about one packet in nine, because
+   * it can only link what the mirrored barcode table happens to carry - and that
+   * table is another shop's, so it knows almost no Keells own-brand goods. The
+   * catalogue itself is complete. Searching it by name reaches every row, which
+   * is why an unknown packet asks for a word rather than a price.
+   *
+   * Scored so that a name starting with what was typed beats one merely
+   * containing it, and a shorter name beats a longer one - "chilli" should
+   * offer "Keells Chilli Powder 100g" before "Keells Chicken Chilli Paste".
+   */
+  function searchItems(term, limit) {
+    const q = String(term == null ? '' : term).trim().toLowerCase();
+    if (!items || q.length < 2) return [];
+
+    const words = q.split(/\s+/).filter(Boolean);
+    const out = [];
+
+    Object.keys(items).forEach(code => {
+      const item = items[code];
+      const name = String(item.name || '');
+      const hay = name.toLowerCase();
+      if (!words.every(w => hay.includes(w))) return;
+
+      let score = 0;
+      if (hay.startsWith(q)) score += 100;
+      else if (hay.includes(q)) score += 50;
+      score += Math.max(0, 40 - name.length / 2);
+
+      out.push({ itemCode: code, name: name, price: Number(item.price) || 0, uom: item.uom || 'NO', score: score });
+    });
+
+    out.sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
+    return out.slice(0, limit || 12);
+  }
+
   /** Price a Keells item code, as read off a shelf ticket. */
   function byItemCode(code) {
     if (!items) return null;
@@ -149,8 +187,49 @@
    * Plantains at Keells and would be a meaningless prefix here. Feeding one to
    * the other is how you end up charging for the wrong thing.
    */
+  /*
+   * Links the shopper made themselves, by naming a packet from the catalogue.
+   * They are consulted before the shipped join: a person holding the packet and
+   * picking its name is better evidence than an offline name match.
+   */
+  let links = {};
+
+  function setLinks(map) {
+    links = {};
+    Object.keys(map || {}).forEach(k => {
+      const code = barcode.normalize(k);
+      if (code && map[k] && map[k].itemCode) links[code] = map[k];
+    });
+    return Object.keys(links).length;
+  }
+
+  function linkFor(code) {
+    const key = barcode.normalize(code);
+    if (!key || !links[key]) return null;
+
+    const link = links[key];
+    // The catalogue is the source of the price, so a link only remembers which
+    // row it points at; a price change is picked up on the next refresh.
+    const live = byItemCode(link.itemCode);
+    return {
+      code: key,
+      name: (live && live.name) || link.name || '',
+      category: link.category || '',
+      itemCode: link.itemCode,
+      price: live ? Number(live.price) || 0 : Number(link.price) || 0,
+      uom: (live && live.uom) || 'NO',
+      storeName: (live && live.name) || link.name || '',
+      matchMethod: 'linked',
+      matchConfidence: 1,
+      linked: true
+    };
+  }
+
   function lookupSync(codeOrParsed) {
-    if (!table) return null;
+    const direct = linkFor(typeof codeOrParsed === 'object' && codeOrParsed
+      ? (codeOrParsed.ean13 || codeOrParsed.code) : codeOrParsed);
+    if (direct && direct.price > 0) return direct;
+    if (!table) return direct;
     const parsed = typeof codeOrParsed === 'object' && codeOrParsed
       ? codeOrParsed
       : barcode.parse(codeOrParsed);
@@ -186,7 +265,7 @@
         offers: p.offers || null
       });
     }
-    return null;
+    return direct;
   }
 
   function lookup(codeOrParsed) {
@@ -197,5 +276,6 @@
     return Object.assign({}, meta, { loaded: !!table });
   }
 
-  return { load, lookup, lookupSync, setTable, setPrices, setItems, byItemCode, info, DATA_URL, PRICE_URL };
+  return { load, lookup, lookupSync, setTable, setPrices, setItems, setLinks, linkFor,
+           byItemCode, searchItems, info, DATA_URL, PRICE_URL };
 });

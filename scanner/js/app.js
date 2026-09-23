@@ -9,7 +9,7 @@
 (function () {
   'use strict';
 
-  const { barcode, catalog, cart, label, scanner, api, scanlog, report, stores, resolve, trips } = window.SLScan;
+  const { barcode, catalog, cart, label, scanner, api, scanlog, report, stores, resolve, trips, links } = window.SLScan;
 
   const $ = sel => document.querySelector(sel);
   const $$ = sel => Array.prototype.slice.call(document.querySelectorAll(sel));
@@ -39,6 +39,8 @@
     catalogForm: $('#catalogForm'),
     catalogStatus: $('#catalogStatus'),
     itemDialog: $('#itemDialog'),
+    dSearch: $('#dSearch'),
+    dResults: $('#dResults'),
     itemForm: $('#itemForm'),
     receipt: $('#receipt'),
     setTestOut: $('#setTestOut'),
@@ -181,6 +183,9 @@
         '<input class="mini" type="number" min="0" step="0.01" id="p-' + item.id + '" ' +
         'data-price="' + item.id + '" placeholder="Rs. total" value="' +
         (item.priceOverride != null ? item.priceOverride.toFixed(2) : '') + '">' +
+        (item.unpriced
+          ? '<button type="button" class="btn small accent" data-name="' + item.id + '">Name it</button>'
+          : '') +
         '<button type="button" class="btn small danger" data-del="' + item.id + '">Remove</button>' +
       '</div>' +
     '</div>';
@@ -672,6 +677,7 @@
 
   let dialogContext = null;
   let dialogResolved = false;
+  let namingLineId = null;
 
   function openItemDialog(context) {
     dialogContext = context || {};
@@ -700,6 +706,10 @@
     $('#dRemember').checked = !!dialogContext.code;
     syncDialogMode();
 
+    el.dSearch.value = dialogContext.name ? '' : (dialogContext.searchTerm || '');
+    el.dResults.hidden = true;
+    el.dResults.innerHTML = '';
+
     if (typeof el.itemDialog.showModal === 'function') el.itemDialog.showModal();
     else el.itemDialog.setAttribute('open', 'open');
     setTimeout(() => $('#dName').focus(), 50);
@@ -720,6 +730,62 @@
    * was scanned and never made it into the trolley, which is exactly the kind of
    * gap that only shows up against the till receipt afterwards.
    */
+  /*
+   * Naming an unknown packet from the store's own catalogue.
+   *
+   * The shipped join reaches about one packet in nine, so most unknown codes
+   * cannot be named automatically. The catalogue behind that join is complete
+   * though, so the shopper types a word instead of a price: pick the row and the
+   * name, the real shelf price and the item code all arrive together, and the
+   * barcode is linked to that row for good.
+   */
+  function renderPickerResults(term) {
+    const hits = resolve.searchItems(term, 8);
+    if (!hits.length) {
+      el.dResults.hidden = term.trim().length >= 2 ? false : true;
+      if (!el.dResults.hidden) {
+        el.dResults.innerHTML =
+          '<div class="empty">Nothing in the store list matches that. Type the name and price by hand.</div>';
+      }
+      return;
+    }
+    el.dResults.hidden = false;
+    el.dResults.innerHTML = hits.map(h =>
+      '<button type="button" class="catalog-item" data-pick="' + escapeHtml(h.itemCode) + '">' +
+        '<div class="info"><b>' + escapeHtml(h.name) + '</b>' +
+        '<span>item ' + escapeHtml(h.itemCode) + '</span></div>' +
+        '<div class="price">' + money(h.price) + '</div>' +
+      '</button>').join('');
+  }
+
+  let pickerTimer = null;
+  el.dSearch.addEventListener('input', (event) => {
+    const term = event.target.value;
+    clearTimeout(pickerTimer);
+    pickerTimer = setTimeout(() => renderPickerResults(term), 120);
+  });
+
+  el.dResults.addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-pick]');
+    if (!button) return;
+
+    const picked = resolve.byItemCode(button.dataset.pick);
+    if (!picked) return;
+
+    $('#dName').value = picked.name;
+    $('#dPrice').value = picked.price;
+    // A catalogue row priced per kilo is a weighed item, whatever was assumed.
+    if (String(picked.uom || '').toUpperCase() === 'KG') {
+      $('#dPricing').value = 'weight';
+      syncDialogMode();
+    }
+    dialogContext = dialogContext || {};
+    dialogContext.itemCode = picked.itemCode;
+    el.dResults.hidden = true;
+    el.dSearch.value = '';
+    $('#dPrice').focus();
+  });
+
   el.itemDialog.addEventListener('close', () => {
     if (!dialogContext || dialogResolved) { dialogContext = null; return; }
     scanlog.record({
@@ -754,8 +820,48 @@
       syncProductToApi(product);
     }
 
+    // Picked from the store's catalogue: link the barcode to that row so this
+    // packet prices itself next time, here and on any later trip.
+    if (ctx.itemCode && (ctx.barcode || product.code)) {
+      links.remember(ctx.barcode || product.code, {
+        itemCode: ctx.itemCode,
+        name: product.name,
+        category: product.category,
+        store: chain()
+      });
+      resolve.setLinks(links.all());
+    }
+
     const learned = learnLabelFormat(ctx, weightKg);
 
+
+    if (ctx.naming && namingLineId) {
+      const updated = cart.update(namingLineId, {
+        name: product.name,
+        category: product.category,
+        pricing: product.pricing,
+        unit: product.unit,
+        unitPrice: product.unitPrice,
+        qty: isWeight ? 1 : Math.max(1, parseInt($('#dQty').value, 10) || 1),
+        weightKg: weightKg,
+        unpriced: !(product.unitPrice > 0)
+      });
+      namingLineId = null;
+      render();
+      scanlog.record({
+        source: ctx.source || 'manual',
+        raw: ctx.barcode || ctx.code || null,
+        product: product,
+        outcome: 'confirmed',
+        line: updated,
+        message: ctx.itemCode
+          ? 'Named from the store catalogue (item ' + ctx.itemCode + ').'
+          : 'Named by the shopper.'
+      });
+      updateLogStatus();
+      setStatus(el.scanStatus, product.name + ' - ' + money(product.unitPrice) + '.', 'ok');
+      return;
+    }
 
     const outcome = addToCart({
       code: product.code,
@@ -795,6 +901,32 @@
         '-digit weight) - the next one will price itself.'
       : ''), 'ok');
   });
+
+  /**
+   * Name a line that went in unpriced.
+   *
+   * Scanning does not stop for an unknown packet - it goes in the trolley
+   * unnamed so the shopper keeps moving - which leaves the naming to be done
+   * whenever there is a free moment: in the queue, or at home against the bill.
+   */
+  function nameExistingLine(id) {
+    const item = cart.items().find(i => i.id === id);
+    if (!item) return;
+
+    namingLineId = id;
+    openItemDialog({
+      code: item.code,
+      barcode: item.barcode || item.code,
+      name: item.name && !/^Unknown item/i.test(item.name) ? item.name : '',
+      category: item.category,
+      pricing: item.pricing,
+      unitPrice: item.unitPrice || 0,
+      weightKg: item.weightKg || 0,
+      qty: item.qty || 1,
+      source: item.source || 'manual',
+      naming: true
+    });
+  }
 
   /**
    * Work out this store's label format from a label the shopper has just
@@ -1020,6 +1152,8 @@
       refreshLine(id);
       renderTotals();
       updateBadge();
+    } else if (target.dataset.name) {
+      nameExistingLine(target.dataset.name);
     } else if (target.dataset.del) {
       cart.remove(target.dataset.del);
       render();
@@ -1414,6 +1548,8 @@
   }));
   loadSettingsIntoForm();
   stores.registerAll(cart.getState().store);
+  // Links the shopper made on earlier trips, so a packet named once stays named.
+  resolve.setLinks(links.all());
   render();
   updateLogStatus();
   renderBillCheck();
