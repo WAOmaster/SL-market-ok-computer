@@ -16,6 +16,7 @@ scanner/
   js/cart.js        lines, counts, weights, discounts, totals
   js/label.js       reads the printed text of a label (OCR post-processing)
   js/stores.js      per-chain prices and learned label formats
+  js/links.js       barcodes the shopper linked to catalogue rows
   js/scanlog.js     what each scan did, failures included
   js/report.js      the whole trip as one JSON object
   js/scanner.js     camera, photo decoding, lazy-loaded OCR
@@ -162,6 +163,35 @@ not an authority.
 - Set a budget and the header total turns amber once you pass it.
 
 Export a trip as CSV or JSON, or print it as a receipt.
+
+## When a packet is not in the barcode table
+
+Most of them are not. The shipped join links a barcode to a Keells item code by
+matching names offline, and it can only link what the mirrored barcode table
+carries - which is another shop's table, so it knows almost no own-brand goods.
+About one packet in nine resolves. The catalogue behind it is complete: 10,000
+Keells items with their real shelf prices.
+
+So an unknown packet goes into the trolley unpriced rather than stopping the
+shop, and is named when there is a free moment - in the queue, or at home
+against the bill. Tap **Name it** on the line and type a word:
+
+```
+semolina  ->  Keells Semolina 500g    item 117953   Rs. 375.00
+              Rich Lanka Semolina 500g item 45140   Rs. 420.00
+```
+
+Picking a row fills in the name and the real shelf price, and links that barcode
+to that row for good - the next pack of it prices itself, on this trip and every
+later one. A link records the row, never the price, so it is still right after
+the catalogue is refreshed.
+
+Two other ways in, when the barcode is a dead end:
+
+- **Scan the shelf-edge ticket.** It carries the Keells item code, which covers
+  every row in the catalogue rather than the ninth that has a barcode.
+- Nothing in the list matches - own-brand lines come and go - so type the name
+  and price by hand, as before.
 
 ## Exporting a trip for analysis
 

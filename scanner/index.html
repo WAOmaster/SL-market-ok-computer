@@ -283,6 +283,10 @@
   <form method="dialog" class="dialog-body" id="itemForm">
     <h3 id="itemDialogTitle">New item</h3>
     <p class="hint" id="itemDialogHint" style="margin:0"></p>
+    <label class="field">Find it in the store list
+      <input type="search" id="dSearch" autocomplete="off" placeholder="Type a word - semolina, chilli, milk">
+    </label>
+    <div class="catalog-list" id="dResults" hidden></div>
     <label class="field">Product name
       <input type="text" id="dName" required>
     </label>
@@ -330,6 +334,7 @@
 <script src="js/label.js"></script>
 <script src="js/scanner.js"></script>
 <script src="js/resolve.js"></script>
+<script src="js/links.js"></script>
 <script src="js/trips.js"></script>
 <script src="js/report.js"></script>
 <script src="js/api.js"></script>
